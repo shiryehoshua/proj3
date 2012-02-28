@@ -105,6 +105,7 @@ typedef struct {
   GLint samplerB;     /* possible name of texture sampler in fragment shader */
   GLint samplerC;     /* possible name of texture sampler in fragment shader */
   GLint samplerD;     /* possible name of texture sampler in fragment shader */
+  GLint Zu, Zv, Zspread;
 } uniloc_t;
 
 /*
@@ -153,13 +154,19 @@ typedef struct {
   enum FilteringModes filteringMode;
   GLint minFilter, magFilter;
   TwBar *tbar;            /* pointer to the parameter "tweak bar" */
-  /* vvvvvvvvvvvvvvvvvvvvv YOUR CODE HERE vvvvvvvvvvvvvvvvvvvvvvvv */
   /* (any other information about the state of mouse or keyboard
      input, geometry, camera, transforms, or anything else that may
      need to be accessed from anywhere */
   mouseFun_t mouseFun;
   /* ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ */
   GLfloat vspNear, vspFar,  U[3], V[3], N[3];
+  GLfloat Zu, Zv, Zspread;
+  double ticDraw,         /* last abs time contextDraw was called */
+    ticMouse;             /* last abs time callbackMousePos was called */
+  GLfloat thetaPerSecU,   /* radians per second along U */
+    thetaPerSecV;         /* radians per second along V */
+  GLfloat angleU,         /* abs angle of beam along U */
+    angleV;               /* abs angle of beam along V */
 } context_t;
 
 #ifdef __cplusplus

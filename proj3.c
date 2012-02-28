@@ -162,21 +162,50 @@ context_t *contextNew(unsigned int geomNum, unsigned int imageNum) {
   ctx->lastX = ctx->lastY = -1;
   ctx->buttonDown = 0;
   ctx->shiftDown = 0;
+  ctx->Zspread = 0.003;
 
   // NOTE: here we make our sphere and square and load our image and bump map
   if (2 == geomNum && 4 == imageNum ) {
-    ctx->geom[0] = spotGeomNewSphere();
-    ctx->geom[1] = spotGeomNewSquare();
-    scaleGeom(ctx->geom[0], 0.25);
-    scaleGeom(ctx->geom[1], 0.25);
+
+    // create the objects
+    ctx->geom[0] = spotGeomNewSoftcube();
+    ctx->geom[1] = spotGeomNewCube1();
+
+    // scale the objects
+    scaleGeom(ctx->geom[0], 0.15);
+    scaleGeom(ctx->geom[1], 0.15);
+
+    // color the objects
+    SPOT_V3_SET(ctx->geom[1]->objColor, 1.0f, 0.0f, 0.0f);
+    SPOT_V3_SET(ctx->geom[0]->objColor, 1.0f, 0.0f, 1.0f);
+
+    // translate the objects
+    translateGeomU(ctx->geom[0], 1.0f);
+    translateGeomU(ctx->geom[1], -1.0f);
+
+    // load images
     spotImageLoadPNG(ctx->image[0], "textimg/uchic-rgb.png");     // texture
     spotImageLoadPNG(ctx->image[1], "textimg/uchic-norm08.png");  // bump map
     spotImageLoadPNG(ctx->image[2], "textimg/uchic-hght08.png");
     spotImageLoadPNG(ctx->image[3], "textimg/check-rgb.png");
-    ctx->geom[0]->Kd = 0.3;
+
+    // set lighting constants
+    ctx->geom[0]->Kd = 0.4;
     ctx->geom[0]->Ks = 0.3;
     ctx->geom[0]->Ka = 0.3;
+    ctx->geom[1]->Kd = 0.4;
+    ctx->geom[1]->Ks = 0.3;
+    ctx->geom[1]->Ka = 0.3;
   }
+
+  ctx->ticDraw = -1;
+  ctx->ticMouse = -1;
+  ctx->thetaPerSecU = 0;
+  ctx->thetaPerSecV = 0;
+
+  ctx->angleU = 0;
+  ctx->angleV = 0;
+
   return ctx;
 }
 
@@ -204,6 +233,9 @@ void setUnilocs() {
       SET_UNILOC(samplerB);
       SET_UNILOC(samplerC);
       SET_UNILOC(samplerD);
+      SET_UNILOC(Zu);
+      SET_UNILOC(Zv);
+      SET_UNILOC(Zspread);
 #undef SET_UNILOC;
 }
 
@@ -449,7 +481,7 @@ int contextDraw(context_t *ctx) {
   glUniform1i(ctx->uniloc.seamFix, ctx->seamFix);
 
   // NOTE: update our geom-specific unilocs
-  for (gi=sceneGeomOffset; gi<ctx->geomNum-1+sceneGeomOffset; gi++) {
+  for (gi=sceneGeomOffset; gi<ctx->geomNum; gi++) {
     // NOTE: we normalize the model matrix; while we may not need to, it is cheap to do so
     norm_M4(gctx->geom[gi]->modelMatrix);
     glUniformMatrix4fv(ctx->uniloc.modelMatrix, 1, GL_FALSE, ctx->geom[gi]->modelMatrix);
