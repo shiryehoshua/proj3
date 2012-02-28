@@ -24,14 +24,18 @@ extern "C" {
 */
 #define TBAR_NAME "Project2-Params"
 
-// Shaders are populated in our main
-#define NUM_PROGRAMS 4
-// Easy program lookup--refer to programIds[ID_${shader}] for the id to use with
-//    `glLinkProgram'
+// NOTE: Shaders are populated in our main
+#define NUM_PROGRAMS 5
+// NOTE: easy program lookup--refer to programIds[ID_${shader}] for the id to use with
+//       `glLinkProgram'
 #define ID_SIMPLE 0
 #define ID_PHONG 1
 #define ID_TEXTURE 2
 #define ID_BUMP 3
+#define ID_PARALLAX 4
+
+enum BumpMappingModes {Disabled, Bump, Parallax};
+enum FilteringModes {Nearest, Linear, NearestWithMipmap, LinearWithMipmap};
 
 /*
 ** The camera_t is a suggested storage place for all the parameters associated
@@ -100,6 +104,7 @@ typedef struct {
   GLint samplerA;     /* possible name of texture sampler in fragment shader */
   GLint samplerB;     /* possible name of texture sampler in fragment shader */
   GLint samplerC;     /* possible name of texture sampler in fragment shader */
+  GLint samplerD;     /* possible name of texture sampler in fragment shader */
 } uniloc_t;
 
 /*
@@ -144,6 +149,9 @@ typedef struct {
     gouraudMode,          /* 1 when in gouraud mode, 0 otherwise */
     perVertexTexturingMode,
     seamFix;
+  enum BumpMappingModes bumpMappingMode;
+  enum FilteringModes filteringMode;
+  GLint minFilter, magFilter;
   TwBar *tbar;            /* pointer to the parameter "tweak bar" */
   /* vvvvvvvvvvvvvvvvvvvvv YOUR CODE HERE vvvvvvvvvvvvvvvvvvvvvvvv */
   /* (any other information about the state of mouse or keyboard
