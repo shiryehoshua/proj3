@@ -119,25 +119,41 @@ void callbackKeyboard(int key, int action)
       // Rotate around the U-axis of the viewport
       case UP:
         v = 0.125;
-        rotate_view_U(v);
+        if (gctx->modelMode) {
+          rotate_model_U(0.05);
+        } else {
+          rotate_view_U(v);
+        }
         break;
 
       // Rotate around the U-axis of the viewport
       case DOWN:
         v= -0.125;
-        rotate_view_U(v);
+        if (gctx->modelMode) {
+          rotate_model_U(-0.05);
+        } else {
+          rotate_view_U(v);
+        }
         break;
 
       // Rotate around the V-axis of the viewport
       case LEFT:
         v= -0.125;
-        rotate_view_V(v);
+        if (gctx->modelMode) {
+          rotate_model_V(-0.05);
+        } else {
+          rotate_view_V(v);
+        }
         break;
 
       // Rotate around the V-axis of the viewport
       case RIGHT:
         v = 0.125;
-        rotate_view_V(v);
+        if (gctx->modelMode) {
+          rotate_model_V(0.05);
+        } else {
+          rotate_view_V(v);
+        }
         break;
 
       // Describe and display scene 1
@@ -284,7 +300,6 @@ void callbackMouseButton(int button, int action)
           printf(" ... (mode L) rotates model around U and V\n");
           gctx->mouseFun.m = NULL;
           gctx->mouseFun.f = m_rotate_model_UV;
-          gctx->mouseFun.multiplier = 0.5;
         }
       } else {
         printf(" ... (mode V) translates eye and look-at along U and V\n");

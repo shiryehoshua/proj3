@@ -31,7 +31,7 @@ void rotate_view_U(GLfloat t);
 void rotate_view_V(GLfloat t);
 void rotate_view_N(GLfloat t);
 
-void rotate_model(GLfloat t, int i);
+void rotate_model(GLfloat t, size_t i);
 void rotate_model_UV(GLfloat x, GLfloat y);
 void rotate_model_U(GLfloat t);
 void rotate_model_V(GLfloat t);
