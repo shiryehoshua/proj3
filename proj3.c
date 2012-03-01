@@ -180,8 +180,8 @@ context_t *contextNew(unsigned int geomNum, unsigned int imageNum) {
     SPOT_V3_SET(ctx->geom[0]->objColor, 1.0f, 0.0f, 1.0f);
 
     // translate the objects
-    translateGeomU(ctx->geom[0], 1.0f);
-    translateGeomU(ctx->geom[1], -1.0f);
+//    translateGeomU(ctx->geom[0], 1.0f);
+    translateGeomU(ctx->geom[1], -2.0f);
 
     // load images
     spotImageLoadPNG(ctx->image[0], "textimg/uchic-rgb.png");     // texture

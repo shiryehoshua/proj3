@@ -281,9 +281,10 @@ void callbackMouseButton(int button, int action)
           gctx->mouseFun.m = gctx->lightDir;
           gctx->mouseFun.f = m_rotate_1st_2nd_V3;
         } else if (gctx->modelMode) {
-          printf(" ... (mode L) rotates light direction around U and V\n");
+          printf(" ... (mode L) rotates model around U and V\n");
           gctx->mouseFun.m = NULL;
           gctx->mouseFun.f = m_rotate_model_UV;
+          gctx->mouseFun.multiplier = 0.5;
         }
       } else {
         printf(" ... (mode V) translates eye and look-at along U and V\n");
