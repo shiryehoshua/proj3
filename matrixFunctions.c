@@ -120,15 +120,25 @@ void rotate_view_N(GLfloat x)
 
 
 // Below isn't used anymore... keep around just in case
-void rotate_model(GLfloat t, int i)
+void rotate_model_UV(GLfloat x, GLfloat y)
 {
-  GLfloat angleX;
-  GLfloat axisX[3], quatX[4];
 
-  angleX = t*M_PI;
-  SPOT_V3_SET(axisX, (GLfloat) (i==0), (GLfloat) -(i==1), 0);
+  GLfloat l, angleX, angleY, axisX[3], axisY[3], quatX[4], quatY[4], quatXY[4], mat[16], temp[16];
+
+  angleX = M_PI * 2.0f * -x;
+  angleY = M_PI * 2.0f * y;
+
+  SPOT_V3_SET(axisX, 0, -1, 0);
+  SPOT_V3_SET(axisY, 1, 0, 0);
+
   spotAAToQuat(quatX, angleX, axisX);
-  spotQuatToM4(gctx->geom[0]->modelMatrix, quatX);
+  spotAAToQuat(quatY, angleY, axisY);
+
+  SPOT_Q_MUL(quatXY, quatX, quatY);
+  spotQuatToM4(mat, quatXY);
+
+  SPOT_M4_MUL(temp, gctx->geom[gctx->gi]->modelMatrix, mat);
+  SPOT_M4_SET_2(gctx->geom[gctx->gi]->modelMatrix, temp);
 
 /*
   GLfloat cotheta, sitheta, // scalars
@@ -200,21 +210,6 @@ void rotate_model(GLfloat t, int i)
 */
 }
 
-void rotate_model_U(GLfloat t)
-{
-  rotate_model(t, 0);
-}
-
-void rotate_model_V(GLfloat t)
-{
-  rotate_model(t, 1);
-}
-
-void rotate_model_N(GLfloat t)
-{
-  rotate_model(t, 2);
-}
-
 /* Wrapped functions to be passed to mouseFun.f */
 
 void m_rotate_1st_V3(GLfloat *t, GLfloat *s, size_t i)
@@ -260,22 +255,8 @@ void m_rotate_view_UV(GLfloat *t, GLfloat *s, size_t i)
 
 void m_rotate_model_UV(GLfloat *t, GLfloat *s, size_t i)
 {
-  GLfloat l, angleX, angleY, axisX[3], axisY[3], quatX[4], quatY[4], quatXY[4], mat[16], temp[16];
 
-  angleX = M_PI * 2.0f * -s[i];
-  angleY = M_PI * 2.0f * s[i+1];
-
-  SPOT_V3_SET(axisX, 0, -1, 0);
-  SPOT_V3_SET(axisY, 1, 0, 0);
-
-  spotAAToQuat(quatX, angleX, axisX);
-  spotAAToQuat(quatY, angleY, axisY);
-
-  SPOT_Q_MUL(quatXY, quatX, quatY);
-  spotQuatToM4(mat, quatXY);
-
-  SPOT_M4_MUL(temp, gctx->geom[gctx->gi]->modelMatrix, mat);
-  SPOT_M4_SET_2(gctx->geom[gctx->gi]->modelMatrix, temp);
+  rotate_model_UV(-s[i], s[i+1]);
 }
 
 /* Translation */

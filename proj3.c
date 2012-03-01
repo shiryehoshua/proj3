@@ -180,7 +180,7 @@ context_t *contextNew(unsigned int geomNum, unsigned int imageNum) {
     SPOT_V3_SET(ctx->geom[0]->objColor, 1.0f, 0.0f, 1.0f);
 
     // translate the objects
-//    translateGeomU(ctx->geom[0], 1.0f);
+    translateGeomU(ctx->geom[0], 1.0f);
     translateGeomU(ctx->geom[1], -2.0f);
 
     // load images
@@ -500,6 +500,8 @@ int contextDraw(context_t *ctx) {
   // enable animation
   gctx->angleU += thetaPerSecU * dt;
   gctx->angleV += thetaPerSecV * dt;
+
+  rotate_model_UV(gctx->angleU, gctx->angleV);
   GLfloat u = 0.5 * (1 + cos(gctx->angleU));
   GLfloat v = 0.5 * (1 + cos(gctx->angleV));
   glUniform1f(ctx->uniloc.Zu, u);
@@ -861,7 +863,7 @@ int main(int argc, const char* argv[]) {
     /* Display rendering results */
     glfwSwapBuffers();
     /* NOTE: don't call glfwWaitEvents() if you want to redraw continuously */
-    glfwWaitEvents();
+//    glfwWaitEvents();
     /* quit if window was closed */
     if (!glfwGetWindowParam(GLFW_OPENED)) {
       gctx->running = 0;
