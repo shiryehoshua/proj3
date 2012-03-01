@@ -121,17 +121,22 @@ void rotate_model(GLfloat t, int i)
   // set axis quaternions (for rotation around axis i, slerp between the two remaining axes != i)
   si = sinf(t * 0.5); co = cosf(t * 0.5);
 
+  // get the axis of rotation
   copy_V3(temp, gctx->camera.uvn, i);
-  //SPOT_V3_SET(temp, (GLfloat) (i == 0), (GLfloat) (i == 1), (GLfloat) (i == 2));
+  SPOT_V3_NORM(temp, temp, l);
+
+  // build the quaternion associated with this axis
   SPOT_V3_SCALE(q, si, temp);
   q[3] = co;
 
   SPOT_Q_NORM(q, q, l);
   SPOT_Q_SET(qstar, -q[0], -q[1], -q[2], q[3]);
 
+  // build rotation matrices for quaternion
   SPOT_Q_TO_M4(rotationq, q);
   SPOT_Q_TO_M4(rotationqstar, qstar);
   
+  // rotate
   SPOT_M4_MUL(qp, rotationq, gctx->geom[gctx->gi]->modelMatrix);
   SPOT_M4_MUL(gctx->geom[gctx->gi]->modelMatrix, qp, rotationqstar);
 
