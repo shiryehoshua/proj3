@@ -118,18 +118,47 @@ void rotate_view_N(GLfloat x)
   SPOT_V3_NORM(gctx->camera.up, temp, l);
 };
 
+void rotate_model(GLfloat t, size_t i) 
+{
+  GLfloat angle, axis[3], quat[4], tempv[3], mat[16], tempm[16];
+  angle = M_PI * 2.0f * t;
 
-// Below isn't used anymore... keep around just in case
+//  SPOT_V3_SET(tempv, (i == 0), - (i == 1), 0);
+  SPOT_M4V3_MUL(axis, gctx->geom[gctx->gi]->modelMatrix, tempv);
+  spotAAToQuat(quat, angle, axis);
+
+  spotQuatToM4(mat, quat);
+
+  SPOT_M4_MUL(tempm, gctx->geom[gctx->gi]->modelMatrix, mat);
+  SPOT_M4_SET_2(gctx->geom[gctx->gi]->modelMatrix, tempm);
+}
+
+void rotate_model_U(GLfloat t)
+{
+  rotate_model(t, 0);
+}
+
+void rotate_model_V(GLfloat t)
+{
+  rotate_model(t, 1);
+}
+
+void rotate_model_N(GLfloat t)
+{
+  rotate_model(t, 2);
+}
+
 void rotate_model_UV(GLfloat x, GLfloat y)
 {
 
-  GLfloat l, angleX, angleY, axisX[3], axisY[3], quatX[4], quatY[4], quatXY[4], mat[16], temp[16];
+  GLfloat l, angleX, angleY, axes[9], axisX[3], axisY[3], quatX[4], quatY[4], quatXY[4], mat[16], temp[16];
 
   angleX = M_PI * 2.0f * -x;
   angleY = M_PI * 2.0f * y;
 
-  SPOT_V3_SET(axisX, 0, -1, 0);
-  SPOT_V3_SET(axisY, 1, 0, 0);
+  SPOT_M3_SET_2(axes, gctx->axes);
+  SPOT_V3_SET(axisY, axes[0], axes[3], axes[6]);
+  SPOT_V3_SET(axisX, axes[1], axes[4], axes[7]);
 
   spotAAToQuat(quatX, angleX, axisX);
   spotAAToQuat(quatY, angleY, axisY);
@@ -139,6 +168,9 @@ void rotate_model_UV(GLfloat x, GLfloat y)
 
   SPOT_M4_MUL(temp, gctx->geom[gctx->gi]->modelMatrix, mat);
   SPOT_M4_SET_2(gctx->geom[gctx->gi]->modelMatrix, temp);
+
+  SPOT_M3M4_EXTRACT(temp, mat);
+  SPOT_M3_MUL(gctx->axes, temp, axes);
 
 /*
   GLfloat cotheta, sitheta, // scalars
@@ -586,4 +618,3 @@ void norm_M4(GLfloat m[4*4])
     m[12]/=m[15]; m[13]/=m[15]; m[14]/=m[15]; m[15]/=m[15];
   }
 }
-
