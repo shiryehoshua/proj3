@@ -114,6 +114,44 @@ void rotate_view_N(GLfloat x)
   SPOT_V3_NORM(gctx->camera.up, temp, l);
 };
 
+void rotate_model(GLfloat t, int i)
+{
+  GLfloat rotationq[16], rotationqstar[16], qp[16], q[4], qstar[4], temp[4], si, co, l;
+
+  // set axis quaternions (for rotation around axis i, slerp between the two remaining axes != i)
+  si = sinf(t * 0.5); co = cosf(t * 0.5);
+
+  copy_V3(temp, gctx->camera.uvn, i);
+  //SPOT_V3_SET(temp, (GLfloat) (i == 0), (GLfloat) (i == 1), (GLfloat) (i == 2));
+  SPOT_V3_SCALE(q, si, temp);
+  q[3] = co;
+
+  SPOT_Q_NORM(q, q, l);
+  SPOT_Q_SET(qstar, -q[0], -q[1], -q[2], q[3]);
+
+  SPOT_Q_TO_M4(rotationq, q);
+  SPOT_Q_TO_M4(rotationqstar, qstar);
+  
+  SPOT_M4_MUL(qp, rotationq, gctx->geom[gctx->gi]->modelMatrix);
+  SPOT_M4_MUL(gctx->geom[gctx->gi]->modelMatrix, qp, rotationqstar);
+
+}
+
+void rotate_model_U(GLfloat t)
+{
+  rotate_model(t, 0);
+}
+
+void rotate_model_V(GLfloat t)
+{
+  rotate_model(t, 1);
+}
+
+void rotate_model_N(GLfloat t)
+{
+  rotate_model(t, 2);
+}
+
 /* Wrapped functions to be passed to mouseFun.f */
 
 void m_rotate_1st_V3(GLfloat *t, GLfloat *s, size_t i)
@@ -155,6 +193,13 @@ void m_rotate_view_UV(GLfloat *t, GLfloat *s, size_t i)
 {
   rotate_view_U(s[i+1]);
   rotate_view_V(-s[i]);
+}
+
+void m_rotate_model_UV(GLfloat *t, GLfloat *s, size_t i)
+{
+  fprintf(stderr, "rotating around U by %f and around V by %f\n", s[i+1], -s[i]);
+  rotate_model_U(s[i+1]);
+  rotate_model_V(-s[i]);
 }
 
 /* Translation */

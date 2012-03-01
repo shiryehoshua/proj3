@@ -423,6 +423,23 @@ int contextDraw(context_t *ctx) {
   const char me[]="contextDraw";
   unsigned int gi;
 
+  GLfloat thetaPerSecU, thetaPerSecV;
+  if (ctx->buttonDown) {
+    /* When the mouse is down, use a velocity of zero */
+    thetaPerSecU = 0;
+    thetaPerSecV = 0;
+  } else {
+    /* Otherwise, use the previous velocity */
+    thetaPerSecU = ctx->thetaPerSecU;
+    thetaPerSecV = ctx->thetaPerSecV;
+  }
+
+  double toc = spotTime();
+  if (ctx->ticDraw == -1)
+    ctx->ticDraw = toc;
+  double dt = toc - ctx->ticDraw;
+  ctx->ticDraw = toc;
+
   /* re-assert which program is being used (AntTweakBar uses its own) */
   glUseProgram(ctx->program); 
 
@@ -479,6 +496,26 @@ int contextDraw(context_t *ctx) {
   glUniform3fv(ctx->uniloc.lightColor, 1, ctx->lightColor);
   glUniform1i(ctx->uniloc.gouraudMode, ctx->gouraudMode);
   glUniform1i(ctx->uniloc.seamFix, ctx->seamFix);
+
+  // enable animation
+  gctx->angleU += thetaPerSecU * dt;
+  gctx->angleV += thetaPerSecV * dt;
+  GLfloat u = 0.5 * (1 + cos(gctx->angleU));
+  GLfloat v = 0.5 * (1 + cos(gctx->angleV));
+  glUniform1f(ctx->uniloc.Zu, u);
+  glUniform1f(ctx->uniloc.Zv, v);
+  glUniform1f(ctx->uniloc.Zspread, ctx->Zspread);
+  
+  for (gi=0; gi<ctx->geomNum; gi++) {
+    glUniformMatrix4fv(ctx->uniloc.modelMatrix, 
+                       1, GL_FALSE, ctx->geom[gi]->modelMatrix);
+    glUniformMatrix3fv(ctx->uniloc.normalMatrix,
+                       1, GL_FALSE, ctx->geom[gi]->normalMatrix);
+    glUniform3fv(ctx->uniloc.objColor, 1, ctx->geom[gi]->objColor);
+    glUniform1f(ctx->uniloc.Ka, ctx->geom[gi]->Ka);
+    glUniform1f(ctx->uniloc.Kd, ctx->geom[gi]->Kd);
+    spotGeomDraw(ctx->geom[gi]);
+  }
 
   // NOTE: update our geom-specific unilocs
   for (gi=sceneGeomOffset; gi<ctx->geomNum; gi++) {

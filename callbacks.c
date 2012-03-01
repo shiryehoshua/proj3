@@ -280,6 +280,10 @@ void callbackMouseButton(int button, int action)
           printf(" ... (mode L) rotates light direction around U and V\n");
           gctx->mouseFun.m = gctx->lightDir;
           gctx->mouseFun.f = m_rotate_1st_2nd_V3;
+        } else if (gctx->modelMode) {
+          printf(" ... (mode L) rotates light direction around U and V\n");
+          gctx->mouseFun.m = NULL;
+          gctx->mouseFun.f = m_rotate_model_UV;
         }
       } else {
         printf(" ... (mode V) translates eye and look-at along U and V\n");
@@ -311,7 +315,39 @@ void callbackMousePos(int xx, int yy)
     s[0] = gctx->mouseFun.multiplier * s[0] + gctx->mouseFun.offset;
     s[1] = gctx->mouseFun.multiplier * s[1] + gctx->mouseFun.offset;
 
+//    fprintf(stderr, "s[i] = %f\n", s[gctx->mouseFun.i]); 
     (gctx->mouseFun.f)(gctx->mouseFun.m, s, gctx->mouseFun.i);
+
+    // animation
+    double toc = spotTime();
+    if (gctx->ticMouse == -1)
+      gctx->ticMouse = toc;
+
+    // Change in time
+    double dt = toc - gctx->ticMouse;
+
+    // Change in angle
+    GLfloat dau, dav;
+    dau = (float)(xx - gctx->lastX)/(gctx->winSizeX)*2*M_PI;
+    dav = (float)(yy - gctx->lastY)/(gctx->winSizeY)*2*M_PI;
+
+    if (fabs(dau) < 0.009) {
+      gctx->thetaPerSecU = 0;
+    } else if (dt > 0) {
+      gctx->thetaPerSecU = dau/dt;
+    }
+
+    if (fabs(dav) < 0.009) {
+      gctx->thetaPerSecV = 0;
+    } else if (dt > 0) {
+      gctx->thetaPerSecV = dav/dt;
+    }
+
+    gctx->angleU += dau;
+    gctx->angleV += dav;
+    gctx->ticMouse = toc;
+
+//    printf("thetaPerSecond: %.6f, %.6f\n", gctx->thetaPerSecU, gctx->thetaPerSecV);
 
     // NOTE: We update lastX and lastY in both callbackMouseButton and callbackMousePos; We believe
     //       this produces better motion.

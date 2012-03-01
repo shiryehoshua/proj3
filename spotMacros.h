@@ -207,6 +207,13 @@ extern "C" {
 #define SPOT_V4_NORM(v2, v1, len) \
   ((len) = SPOT_V4_LEN(v1), SPOT_V4_SCALE(v2, 1.0f/len, v1))
  
+/* v3 = v1 + v2; v1, v2, v3: 4-vector */
+#define SPOT_V4_ADD(v3, v1, v2) \
+  ((v3)[0] = (v1)[0] + (v2)[0], \
+   (v3)[1] = (v1)[1] + (v2)[1], \
+   (v3)[2] = (v1)[2] + (v2)[2], \
+   (v3)[3] = (v1)[3] + (v2)[3]) 
+
 /* set entire matrix m1 with m2; m1, m2: 4x4 matrix; */
 #define SPOT_M4_SET_2(m1, m2)                     \
   ((m1)[ 0] = (m2)[ 0], (m1)[ 4] = (m2)[ 4], (m1)[ 8] = (m2)[ 8], (m1)[12] = (m2)[12], \

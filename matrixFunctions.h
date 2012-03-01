@@ -26,10 +26,15 @@ void rotate_2nd_V3(GLfloat x[3], GLfloat *uvn, GLfloat *s, size_t i);
 void rotate_3rd_V3(GLfloat x[3], GLfloat *uvn, GLfloat *s, size_t i);
 void rotate_1st_2nd_V3(GLfloat x[3], GLfloat *uvn, GLfloat *s, size_t i);
 
-void rotate_view(GLfloat v, int i);
-void rotate_view_U(GLfloat z);
-void rotate_view_V(GLfloat z);
-void rotate_view_N(GLfloat x);
+void rotate_view(GLfloat t, int i);
+void rotate_view_U(GLfloat t);
+void rotate_view_V(GLfloat t);
+void rotate_view_N(GLfloat t);
+
+void rotate_model(GLfloat t, int i);
+void rotate_model_U(GLfloat t);
+void rotate_model_V(GLfloat t);
+void rotate_model_N(GLfloat t);
 
 void m_rotate_1st_V3(GLfloat *t, GLfloat *s, size_t i);
 void m_rotate_2nd_V3(GLfloat *t, GLfloat *s, size_t i);
@@ -39,6 +44,7 @@ void m_rotate_view_U(GLfloat *t, GLfloat *s, size_t i);
 void m_rotate_view_V(GLfloat *t, GLfloat *s, size_t i);
 void m_rotate_view_N(GLfloat *t, GLfloat *s, size_t i);
 void m_rotate_view_UV(GLfloat *t, GLfloat *s, size_t i);
+void m_rotate_model_UV(GLfloat *t, GLfloat *s, size_t i);
 
 void translate(GLfloat xyzw[4*4], GLfloat v[3]);
 
