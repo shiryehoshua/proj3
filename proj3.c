@@ -189,6 +189,13 @@ context_t *contextNew(unsigned int geomNum, unsigned int imageNum) {
     spotImageLoadPNG(ctx->image[2], "textimg/uchic-hght08.png");
     spotImageLoadPNG(ctx->image[3], "textimg/check-rgb.png");
 
+		spotImageLoadPNG(ctx->image[4], "textimg/pos_x.png");
+		spotImageLoadPNG(ctx->image[5], "textimg/neg_x.png");
+		spotImageLoadPNG(ctx->image[6], "textimg/pos_y.png");
+		spotImageLoadPNG(ctx->image[7], "textimg/neg_y.png");
+		spotImageLoadPNG(ctx->image[8], "textimg/pos_z.png");
+		spotImageLoadPNG(ctx->image[9], "textimg/neg_z.png");
+
     // set lighting constants
     ctx->geom[0]->Kd = 0.4;
     ctx->geom[0]->Ks = 0.3;
@@ -486,6 +493,28 @@ int contextDraw(context_t *ctx) {
   glGenerateMipmap(GL_TEXTURE_2D);
   glUniform1i(ctx->uniloc.samplerD, 3);
 
+  //glGenTextures(1, TEXTURE4);
+  glActiveTexture(GL_TEXTURE4);
+  glBindTexture(GL_TEXTURE_CUBE_MAP, GL_TEXTURE4);
+  glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+  glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+  glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+  glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+  glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR); 
+  //Define all 6 faces
+  glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X, 0, GL_RGBA, ctx->image[4]->sizeX,
+    ctx->image[4]->sizeY, 0, GL_RGB, GL_UNSIGNED_BYTE, ctx->image[4]->data.v);
+  glTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_X, 0, GL_RGBA, ctx->image[5]->sizeX,
+    ctx->image[5]->sizeY, 0, GL_RGB, GL_UNSIGNED_BYTE, ctx->image[5]->data.v);
+  glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_Y, 0, GL_RGBA, ctx->image[6]->sizeX,
+    ctx->image[6]->sizeY, 0, GL_RGB, GL_UNSIGNED_BYTE, ctx->image[6]->data.v);
+  glTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_Y, 0, GL_RGBA, ctx->image[7]->sizeX,
+    ctx->image[7]->sizeY, 0, GL_RGB, GL_UNSIGNED_BYTE, ctx->image[7]->data.v);
+  glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_Z, 0, GL_RGBA, ctx->image[8]->sizeX,
+    ctx->image[8]->sizeY, 0, GL_RGB, GL_UNSIGNED_BYTE, ctx->image[8]->data.v);
+  glTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_Z, 0, GL_RGBA, ctx->image[9]->sizeX,
+    ctx->image[9]->sizeY, 0, GL_RGB, GL_UNSIGNED_BYTE, ctx->image[9]->data.v);
+
   // NOTE: we must normalize our UVN matrix
   norm_M4(gctx->camera.uvn);
 
@@ -540,6 +569,8 @@ int contextDraw(context_t *ctx) {
   /* These lines are also related to using textures.  We finish by
      leaving GL_TEXTURE0 as the active unit since AntTweakBar uses
      that, but doesn't seem to explicitly select it */
+  glActiveTexture(GL_TEXTURE4);
+  glBindTexture(GL_TEXTURE_2D, 4);
   glActiveTexture(GL_TEXTURE3);
   glBindTexture(GL_TEXTURE_2D, 3);
   glActiveTexture(GL_TEXTURE2);
