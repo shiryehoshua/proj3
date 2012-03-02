@@ -32,8 +32,6 @@ int programIds[NUM_PROGRAMS+1];       // List of corresponding program ids (for 
 // Global context
 context_t *gctx = NULL;
 
-GLuint cubeMapTID;
-
 // Values for tweak bar
 TwType twBumpMappingModes, twFilteringModes;
 TwEnumVal twBumpMappingModesEV[]={{Disabled, "Disabled"},
@@ -167,10 +165,11 @@ context_t *contextNew(unsigned int geomNum, unsigned int imageNum) {
   ctx->Zspread = 0.003;
 
   // NOTE: here we make our sphere and square and load our image and bump map
-  if (2 == geomNum && 10 == imageNum ) {
+  if (2 == geomNum) {
 
     // create the objects
-    ctx->geom[0] = spotGeomNewSoftcube();
+    //ctx->geom[0] = spotGeomNewSoftcube();
+    ctx->geom[0] = spotGeomNewSphere();
     ctx->geom[1] = spotGeomNewCube1();
 
     // scale the objects
@@ -196,12 +195,7 @@ context_t *contextNew(unsigned int geomNum, unsigned int imageNum) {
     spotImageLoadPNG(ctx->image[2], "textimg/uchic-norm08.png");
     spotImageLoadPNG(ctx->image[3], "textimg/check-rgb.png");
 
-		spotImageLoadPNG(ctx->image[4], "textimg/pos_x.png");
-		spotImageLoadPNG(ctx->image[5], "textimg/neg_x.png");
-		spotImageLoadPNG(ctx->image[6], "textimg/pos_y.png");
-		spotImageLoadPNG(ctx->image[7], "textimg/neg_y.png");
-		spotImageLoadPNG(ctx->image[8], "textimg/pos_z.png");
-		spotImageLoadPNG(ctx->image[9], "textimg/neg_z.png");
+		spotImageLoadPNG(ctx->image[4], "textimg/cube-sample.png");
 
     // set lighting constants
     ctx->geom[0]->Kd = 0.4;
@@ -247,8 +241,8 @@ void setUnilocs() {
       SET_UNILOC(samplerA);
       SET_UNILOC(samplerB);
       SET_UNILOC(samplerC);
-      SET_UNILOC(samplerD);
       SET_UNILOC(cubeMap);
+      SET_UNILOC(samplerD);
       SET_UNILOC(Zu);
       SET_UNILOC(Zv);
       SET_UNILOC(Zspread);
@@ -339,9 +333,17 @@ int contextGLInit(context_t *ctx) {
   }
   if (ctx->image) {
     for (ii=0; ii<ctx->imageNum; ii++) {
+				printf("ii: %d\n", ii);
       if (ctx->image[ii]->data.v) {
         // Only bother with GL init when image data has been set
-        if (spotImageGLInit(ctx->image[ii])) {
+				if (ii==4) { // 4 is our cubemap
+					if (spotImageCubeMapGLInit(ctx->image[ii])) {
+						spotErrorAdd("%s: trouble with image[%u]", me, ii);
+						return 1;
+					} else {
+						printf("cubeMap: %d\n", ii);
+					}
+				} else if (spotImageGLInit(ctx->image[ii])) {
           spotErrorAdd("%s: trouble with image[%u]", me, ii);
           return 1;
         }
@@ -399,27 +401,6 @@ int contextGLInit(context_t *ctx) {
       GL_RGB, GL_UNSIGNED_BYTE, ctx->image[3]->data.v);
   glGenerateMipmap(GL_TEXTURE_2D);
   glUniform1i(ctx->uniloc.samplerD, 3);*/
-
-  glGenTextures(1, &cubeMapTID);
-  glBindTexture(GL_TEXTURE_CUBE_MAP, cubeMapTID);
-  glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-  glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-  glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-  glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-  glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR); 
-  //Define all 6 faces
-  glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X, 0, GL_RGBA, ctx->image[4]->sizeX,
-    ctx->image[4]->sizeY, 0, GL_RGB, GL_UNSIGNED_BYTE, ctx->image[4]->data.v);
-  glTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_X, 0, GL_RGBA, ctx->image[5]->sizeX,
-    ctx->image[5]->sizeY, 0, GL_RGB, GL_UNSIGNED_BYTE, ctx->image[5]->data.v);
-  glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_Y, 0, GL_RGBA, ctx->image[6]->sizeX,
-    ctx->image[6]->sizeY, 0, GL_RGB, GL_UNSIGNED_BYTE, ctx->image[6]->data.v);
-  glTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_Y, 0, GL_RGBA, ctx->image[7]->sizeX,
-    ctx->image[7]->sizeY, 0, GL_RGB, GL_UNSIGNED_BYTE, ctx->image[7]->data.v);
-  glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_Z, 0, GL_RGBA, ctx->image[8]->sizeX,
-    ctx->image[8]->sizeY, 0, GL_RGB, GL_UNSIGNED_BYTE, ctx->image[8]->data.v);
-  glTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_Z, 0, GL_RGBA, ctx->image[9]->sizeX,
-    ctx->image[9]->sizeY, 0, GL_RGB, GL_UNSIGNED_BYTE, ctx->image[9]->data.v);
 
   return 0;
 }
@@ -512,23 +493,23 @@ int contextDraw(context_t *ctx) {
      pg 279.  Also, http://tinyurl.com/7bvnej3 is amusing and
      informative */
 
-  // NOTE: recall that image[0] is "uchic-rgb.png"
   glActiveTexture(GL_TEXTURE0);
+  glBindTexture(GL_TEXTURE_CUBE_MAP, ctx->image[4]->textureId);
+  glUniform1i(ctx->uniloc.cubeMap, 0);
+
+  // NOTE: recall that image[0] is "uchic-rgb.png"
+  glActiveTexture(GL_TEXTURE1);
   glBindTexture(GL_TEXTURE_2D, ctx->image[0]->textureId);
-  glUniform1i(ctx->uniloc.samplerA, 0);
+  glUniform1i(ctx->uniloc.samplerA, 1);
 
   // NOTE: recall that image[0] is "uchic-norm08.png"
-  glActiveTexture(GL_TEXTURE1);
+/*  glActiveTexture(GL_TEXTURE2);
   glBindTexture(GL_TEXTURE_2D, ctx->image[1]->textureId);
-  glUniform1i(ctx->uniloc.samplerB, 1);
-
-  glActiveTexture(GL_TEXTURE2);
-  glBindTexture(GL_TEXTURE_2D, ctx->image[2]->textureId);
-  glUniform1i(ctx->uniloc.samplerC, 2);
+  glUniform1i(ctx->uniloc.samplerB, 2);
 
   glActiveTexture(GL_TEXTURE3);
-  glBindTexture(GL_TEXTURE_CUBE_MAP, cubeMapTID);
-  glUniform1i(ctx->uniloc.cubeMap, 3);
+  glBindTexture(GL_TEXTURE_2D, ctx->image[2]->textureId);
+  glUniform1i(ctx->uniloc.samplerC, 3); */
 
   // NOTE: we must normalize our UVN matrix
   norm_M4(gctx->camera.uvn);
@@ -587,13 +568,11 @@ int contextDraw(context_t *ctx) {
   /* These lines are also related to using textures.  We finish by
      leaving GL_TEXTURE0 as the active unit since AntTweakBar uses
      that, but doesn't seem to explicitly select it */
-//  glActiveTexture(GL_TEXTURE4);
-//  glBindTexture(GL_TEXTURE_2D, 4);
-  glActiveTexture(GL_TEXTURE3);
+/*  glActiveTexture(GL_TEXTURE3);
   glBindTexture(GL_TEXTURE_2D, 3);
   glActiveTexture(GL_TEXTURE2);
   glBindTexture(GL_TEXTURE_2D, 2);
-  glActiveTexture(GL_TEXTURE1);
+  glActiveTexture(GL_TEXTURE1); */
   glBindTexture(GL_TEXTURE_2D, 1);
   glActiveTexture(GL_TEXTURE0);
   glBindTexture(GL_TEXTURE_2D, 0);
@@ -813,7 +792,7 @@ int main(int argc, const char* argv[]) {
     exit(1);
   }
 
-  if (!(gctx = contextNew(2, 10))) { // 10 Images!
+  if (!(gctx = contextNew(2, 5))) { // 10 Images!
     fprintf(stderr, "%s: context set-up problem:\n", me);
     spotErrorPrint();
     spotErrorClear();

@@ -35,7 +35,6 @@ void main() {
 	vec3 vEyeVertex = normalize(vVert4.xyz / vVert4.w);
 	vec4 vCoords = vec4(reflect(vEyeVertex, vnrm), 1.0);
 	vCoords = inverseViewMatrix * vCoords;
-	//vCoords = viewMatrix * vCoords;
 	texCoord = normalize(vCoords.xyz);
 
   // transform vertices 

@@ -268,6 +268,15 @@ extern int spotGeomDraw(spotGeom *sgeom);
 extern int spotGeomGLDone(spotGeom *sgeom);
 extern spotGeom *spotGeomNix(spotGeom *sgeom);
 
+/* ------------------------ spotProj3A.c ------------------------ */
+/* New functions for Project 3 functionality */
+/* spotImageCubeMapGLInit: initialize spotImage as a cube map */
+extern int spotImageCubeMapGLInit(spotImage *img);
+/* spotGeomTransform: apply given transform to the spotGeom,
+ *   including appropriate transform of normal and tangents */
+extern int spotGeomTransform(spotGeom *sgeom, const GLfloat xform[16]);
+/* spotGeomColorRGB: apply color to all per-vertex colors in spotGeom */
+extern int spotGeomColorRGB(spotGeom *sgem, const GLfloat RGB[3]);
 
 #ifdef __cplusplus
 }
