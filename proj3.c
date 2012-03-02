@@ -528,7 +528,7 @@ int contextDraw(context_t *ctx) {
 
   // NOTE: we must normalize our UVN matrix
   norm_M4(gctx->camera.uvn);
-  norm_M4(gctx->camera.inverse_uvn);
+	inverseUVN(gctx->camera.inverse_uvn, gctx->camera.uvn);
 
   // NOTE: update our unilocs
   glUniformMatrix4fv(ctx->uniloc.viewMatrix, 1, GL_FALSE, gctx->camera.uvn);
@@ -890,7 +890,6 @@ int main(int argc, const char* argv[]) {
   while (gctx->running) {
     // NOTE: we update UVN every step
     updateUVN(gctx->camera.uvn, gctx->camera.at, gctx->camera.from, gctx->camera.up);
-		inverseUVN(gctx->camera.inverse_uvn, gctx->camera.uvn);
     /* render */
     if (contextDraw(gctx)) {
       fprintf(stderr, "%s: trouble drawing:\n", me);
