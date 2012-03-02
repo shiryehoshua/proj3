@@ -456,16 +456,17 @@ int contextDraw(context_t *ctx) {
   const char me[]="contextDraw";
   unsigned int gi;
   GLfloat modelMat[16];
+  GLfloat thetaPerSecU, thetaPerSecV;
 
-//  if (ctx->buttonDown) {
+  if (ctx->buttonDown) {
     /* When the mouse is down, use a velocity of zero */
-//    thetaPerSecU = 0;
-//    thetaPerSecV = 0;
-//  } else {
+    thetaPerSecU = 0;
+    thetaPerSecV = 0;
+  } else {
     /* Otherwise, use the previous velocity */
-//  }
-    GLfloat thetaPerSecU = ctx->thetaPerSecU;
-    GLfloat thetaPerSecV = ctx->thetaPerSecV;
+    thetaPerSecU = ctx->thetaPerSecU;
+    thetaPerSecV = ctx->thetaPerSecV;
+  }
 
   double toc = spotTime();
   if (ctx->ticDraw == -1)
@@ -871,32 +872,6 @@ int main(int argc, const char* argv[]) {
   while (gctx->running) {
     // NOTE: we update UVN every step
     updateUVN(gctx->camera.uvn, gctx->camera.at, gctx->camera.from, gctx->camera.up);
-
-
-
-
-  GLfloat thetaPerSecU, thetaPerSecV;
-    thetaPerSecU = gctx->thetaPerSecU;
-    thetaPerSecV = gctx->thetaPerSecV;
-  double toc = spotTime();
-  if (gctx->ticDraw == -1)
-    gctx->ticDraw = toc;
-  double dt = toc - gctx->ticDraw;
-	gctx->ticDraw = toc;
-
-  gctx->angleU = 5;// * dt;
-  gctx->angleV = 5;// * dt;
-  fprintf(stderr, "ANGLEU: %f, ANGLEV: %f\n", gctx->angleU, gctx->angleV);
-  rotate_model_UV(0.2, 0.1);
-  //rotate_model_UV(gctx->angleU, gctx->angleV);
-
-
-
-
-
-
-
-
     /* render */
     if (contextDraw(gctx)) {
       fprintf(stderr, "%s: trouble drawing:\n", me);

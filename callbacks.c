@@ -347,19 +347,19 @@ void callbackMousePos(int xx, int yy)
     dau = (float)(xx - gctx->lastX)/(gctx->winSizeX)*2*M_PI;
     dav = (float)(yy - gctx->lastY)/(gctx->winSizeY)*2*M_PI;
 
-//    if (fabs(dau) < 0.009) {
-//      gctx->thetaPerSecU = 0;
-//    } else if (dt > 0) {
-//      gctx->thetaPerSecU = dau/dt;
-			gctx->thetaPerSecU = 1;
-//    }
+    if (fabs(dau) < 0.009) {
+      gctx->thetaPerSecU = 0;
+    } else if (dt > 0) {
+      gctx->thetaPerSecU = dau/dt;
+//			gctx->thetaPerSecU = 1;
+    }
 
-//    if (fabs(dav) < 0.009) {
-//      gctx->thetaPerSecV = 0;
-//    } else if (dt > 0) {
-      //gctx->thetaPerSecV = dav/dt;
-			gctx->thetaPerSecV = 1;
-//    }
+    if (fabs(dav) < 0.009) {
+      gctx->thetaPerSecV = 0;
+    } else if (dt > 0) {
+      gctx->thetaPerSecV = dav/dt;
+			//gctx->thetaPerSecV = 1;
+    }
 
     gctx->ticMouse = toc;
 
