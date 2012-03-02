@@ -32,6 +32,8 @@ int programIds[NUM_PROGRAMS+1];       // List of corresponding program ids (for 
 // Global context
 context_t *gctx = NULL;
 
+GLuint cubeMapTID;
+
 // Values for tweak bar
 TwType twBumpMappingModes, twFilteringModes;
 TwEnumVal twBumpMappingModesEV[]={{Disabled, "Disabled"},
@@ -165,7 +167,7 @@ context_t *contextNew(unsigned int geomNum, unsigned int imageNum) {
   ctx->Zspread = 0.003;
 
   // NOTE: here we make our sphere and square and load our image and bump map
-  if (2 == geomNum && 4 == imageNum ) {
+  if (2 == geomNum && 10 == imageNum ) {
 
     // create the objects
     ctx->geom[0] = spotGeomNewSoftcube();
@@ -190,8 +192,16 @@ context_t *contextNew(unsigned int geomNum, unsigned int imageNum) {
     // load images
     spotImageLoadPNG(ctx->image[0], "textimg/uchic-rgb.png");     // texture
     spotImageLoadPNG(ctx->image[1], "textimg/uchic-norm08.png");  // bump map
-    spotImageLoadPNG(ctx->image[2], "textimg/uchic-hght08.png");
+    //spotImageLoadPNG(ctx->image[2], "textimg/uchic-hght08.png");
+    spotImageLoadPNG(ctx->image[2], "textimg/uchic-norm08.png");
     spotImageLoadPNG(ctx->image[3], "textimg/check-rgb.png");
+
+		spotImageLoadPNG(ctx->image[4], "textimg/pos_x.png");
+		spotImageLoadPNG(ctx->image[5], "textimg/neg_x.png");
+		spotImageLoadPNG(ctx->image[6], "textimg/pos_y.png");
+		spotImageLoadPNG(ctx->image[7], "textimg/neg_y.png");
+		spotImageLoadPNG(ctx->image[8], "textimg/pos_z.png");
+		spotImageLoadPNG(ctx->image[9], "textimg/neg_z.png");
 
     // set lighting constants
     ctx->geom[0]->Kd = 0.4;
@@ -224,6 +234,7 @@ void setUnilocs() {
       SET_UNILOC(modelMatrix);
       SET_UNILOC(normalMatrix);
       SET_UNILOC(viewMatrix);
+      SET_UNILOC(inverseViewMatrix);
       SET_UNILOC(projMatrix);
       SET_UNILOC(objColor);
       SET_UNILOC(gi);
@@ -237,6 +248,7 @@ void setUnilocs() {
       SET_UNILOC(samplerB);
       SET_UNILOC(samplerC);
       SET_UNILOC(samplerD);
+      SET_UNILOC(cubeMap);
       SET_UNILOC(Zu);
       SET_UNILOC(Zv);
       SET_UNILOC(Zspread);
@@ -354,6 +366,7 @@ int contextGLInit(context_t *ctx) {
 
   // NOTE: camera initializations
   SPOT_M4_IDENTITY(gctx->camera.uvn);
+  SPOT_M4_IDENTITY(gctx->camera.inverse_uvn);
   SPOT_M4_IDENTITY(gctx->camera.proj);
   gctx->camera.ortho = 0; // start in perspective mode
   gctx->camera.fixed = 0;
@@ -374,6 +387,39 @@ int contextGLInit(context_t *ctx) {
   gctx->mouseFun.m = NULL;
   gctx->mouseFun.f = identity;
   gctx->mouseFun.offset=gctx->mouseFun.multiplier=gctx->mouseFun.i = 0;
+
+	/*
+  glActiveTexture(GL_TEXTURE3);
+  glBindTexture(GL_TEXTURE_2D, ctx->image[3]->textureId);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, gctx->minFilter);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, gctx->magFilter);
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, ctx->image[3]->sizeX, ctx->image[3]->sizeY, 0,
+      GL_RGB, GL_UNSIGNED_BYTE, ctx->image[3]->data.v);
+  glGenerateMipmap(GL_TEXTURE_2D);
+  glUniform1i(ctx->uniloc.samplerD, 3);*/
+
+  glGenTextures(1, &cubeMapTID);
+  glBindTexture(GL_TEXTURE_CUBE_MAP, cubeMapTID);
+  glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+  glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+  glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+  glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+  glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR); 
+  //Define all 6 faces
+  glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X, 0, GL_RGBA, ctx->image[4]->sizeX,
+    ctx->image[4]->sizeY, 0, GL_RGB, GL_UNSIGNED_BYTE, ctx->image[4]->data.v);
+  glTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_X, 0, GL_RGBA, ctx->image[5]->sizeX,
+    ctx->image[5]->sizeY, 0, GL_RGB, GL_UNSIGNED_BYTE, ctx->image[5]->data.v);
+  glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_Y, 0, GL_RGBA, ctx->image[6]->sizeX,
+    ctx->image[6]->sizeY, 0, GL_RGB, GL_UNSIGNED_BYTE, ctx->image[6]->data.v);
+  glTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_Y, 0, GL_RGBA, ctx->image[7]->sizeX,
+    ctx->image[7]->sizeY, 0, GL_RGB, GL_UNSIGNED_BYTE, ctx->image[7]->data.v);
+  glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_Z, 0, GL_RGBA, ctx->image[8]->sizeX,
+    ctx->image[8]->sizeY, 0, GL_RGB, GL_UNSIGNED_BYTE, ctx->image[8]->data.v);
+  glTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_Z, 0, GL_RGBA, ctx->image[9]->sizeX,
+    ctx->image[9]->sizeY, 0, GL_RGB, GL_UNSIGNED_BYTE, ctx->image[9]->data.v);
 
   return 0;
 }
@@ -481,21 +527,16 @@ int contextDraw(context_t *ctx) {
   glUniform1i(ctx->uniloc.samplerC, 2);
 
   glActiveTexture(GL_TEXTURE3);
-  glBindTexture(GL_TEXTURE_2D, ctx->image[3]->textureId);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, gctx->minFilter);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, gctx->magFilter);
-  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, ctx->image[3]->sizeX, ctx->image[3]->sizeY, 0,
-      GL_RGB, GL_UNSIGNED_BYTE, ctx->image[3]->data.v);
-  glGenerateMipmap(GL_TEXTURE_2D);
-  glUniform1i(ctx->uniloc.samplerD, 3);
+  glBindTexture(GL_TEXTURE_CUBE_MAP, cubeMapTID);
+  glUniform1i(ctx->uniloc.cubeMap, 3);
 
   // NOTE: we must normalize our UVN matrix
   norm_M4(gctx->camera.uvn);
+	inverseUVN(gctx->camera.inverse_uvn, gctx->camera.uvn);
 
   // NOTE: update our unilocs
   glUniformMatrix4fv(ctx->uniloc.viewMatrix, 1, GL_FALSE, gctx->camera.uvn);
+  glUniformMatrix4fv(ctx->uniloc.inverseViewMatrix, 1, GL_FALSE, gctx->camera.inverse_uvn);
   glUniformMatrix4fv(ctx->uniloc.projMatrix, 1, GL_FALSE, gctx->camera.proj);
   glUniform3fv(ctx->uniloc.lightDir, 1, ctx->lightDir);
   glUniform3fv(ctx->uniloc.lightColor, 1, ctx->lightColor);
@@ -546,6 +587,8 @@ int contextDraw(context_t *ctx) {
   /* These lines are also related to using textures.  We finish by
      leaving GL_TEXTURE0 as the active unit since AntTweakBar uses
      that, but doesn't seem to explicitly select it */
+//  glActiveTexture(GL_TEXTURE4);
+//  glBindTexture(GL_TEXTURE_2D, 4);
   glActiveTexture(GL_TEXTURE3);
   glBindTexture(GL_TEXTURE_2D, 3);
   glActiveTexture(GL_TEXTURE2);
@@ -770,7 +813,7 @@ int main(int argc, const char* argv[]) {
     exit(1);
   }
 
-  if (!(gctx = contextNew(2, 4))) { // 4 Images!
+  if (!(gctx = contextNew(2, 10))) { // 10 Images!
     fprintf(stderr, "%s: context set-up problem:\n", me);
     spotErrorPrint();
     spotErrorClear();

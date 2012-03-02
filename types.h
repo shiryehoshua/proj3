@@ -61,6 +61,7 @@ typedef struct {
                          orthographic */
       fixed;
   GLfloat uvn[4*4];
+  GLfloat inverse_uvn[4*4];
   GLfloat proj[4*4];
 
   GLfloat wf, hf;
@@ -95,6 +96,7 @@ typedef struct {
   GLint gi;           /* index of spotGeom object */
   /* vvvvvvvvvvvvvvvvvvvvv YOUR CODE HERE vvvvvvvvvvvvvvvvvvvvvvvv */
   GLint viewMatrix;   /* possible name of view matrix in vertex shader */
+  GLint inverseViewMatrix;   /* possible name of view matrix in vertex shader */
   GLint projMatrix;   /* possible name of projection matrix in vertex shader */
   /* ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ */
   GLint lightDir;     /* same name as field in context_t */
@@ -105,6 +107,7 @@ typedef struct {
   GLint samplerB;     /* possible name of texture sampler in fragment shader */
   GLint samplerC;     /* possible name of texture sampler in fragment shader */
   GLint samplerD;     /* possible name of texture sampler in fragment shader */
+  GLint cubeMap;     /* possible name of texture sampler in fragment shader */
   GLint Zu, Zv, Zspread;
 } uniloc_t;
 

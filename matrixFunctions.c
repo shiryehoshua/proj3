@@ -476,6 +476,21 @@ void updateUVN(GLfloat uvn[4*4], GLfloat at[3], GLfloat from[3], GLfloat up[3])
   SPOT_M4_COL3_SET(uvn, t);
 }
 
+void inverseUVN(GLfloat inverse_uvn[4*4], GLfloat uvn[4*4])
+{
+	GLfloat temp[3*3], inverse_temp[3*3];
+	SPOT_M3M4_EXTRACT(temp, uvn);
+	GLfloat det = SPOT_M3_DET(temp);
+	if (det != 0) {
+		SPOT_M3_INVERSE(inverse_temp, temp, det);
+		SPOT_M4_SET(inverse_uvn,
+			inverse_temp[0], inverse_temp[3], inverse_temp[6], 0,
+			inverse_temp[1], inverse_temp[4], inverse_temp[7], 0,
+			inverse_temp[2], inverse_temp[5], inverse_temp[8], 0,
+			0, 0, 0, 1);
+	}
+}
+
 /* updateProj: for use with gctx->camera.proj */
 
 void updateProj(GLfloat m[4*4], GLfloat w, GLfloat h, GLfloat n, GLfloat f, int ortho)
