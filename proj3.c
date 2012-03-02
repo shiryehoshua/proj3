@@ -553,7 +553,7 @@ int contextDraw(context_t *ctx) {
     norm_M4(modelMat);
     glUniformMatrix4fv(ctx->uniloc.modelMatrix, 1, GL_FALSE, modelMat);
     // NOTE: we update normals in our `matrixFunctions.c' functions on a case-by-case basis
-    // updateNormals(gctx->geom[gi]->normalMatrix, gctx->geom[gi]->normalMatrix);
+    updateNormals(gctx->geom[gi]->normalMatrix, modelMat);
     glUniformMatrix3fv(ctx->uniloc.normalMatrix, 1, GL_FALSE, ctx->geom[gi]->normalMatrix);
     //
     glUniform3fv(ctx->uniloc.objColor, 1, ctx->geom[gi]->objColor);

@@ -27,7 +27,7 @@ void main() {
   gl_Position = projMatrix * viewMatrix * modelMatrix * vertPos;
   
   // calculate surface normal in view coords
-  vnrm = normalMatrix * vertNorm;
+  vnrm = normalize(normalMatrix * vertNorm);
 
   // pass fragment shader the vertTex
   fragTex = vertTex2;
