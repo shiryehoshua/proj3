@@ -195,7 +195,8 @@ context_t *contextNew(unsigned int geomNum, unsigned int imageNum) {
     spotImageLoadPNG(ctx->image[2], "textimg/uchic-norm08.png");
     spotImageLoadPNG(ctx->image[3], "textimg/check-rgb.png");
 
-		spotImageLoadPNG(ctx->image[4], "textimg/cube-sample.png");
+		//spotImageLoadPNG(ctx->image[4], "textimg/cube-sample.png");
+		spotImageLoadPNG(ctx->image[4], "textimg/cube-cool.png");
 
     // set lighting constants
     ctx->geom[0]->Kd = 0.4;
@@ -538,6 +539,7 @@ int contextDraw(context_t *ctx) {
     set_model_transform(modelMat, ctx->geom[gi]);
     glUniformMatrix4fv(ctx->uniloc.modelMatrix, 
                        1, GL_FALSE, modelMat);
+    updateNormals(gctx->geom[gi]->normalMatrix, modelMat);
     glUniformMatrix3fv(ctx->uniloc.normalMatrix,
                        1, GL_FALSE, ctx->geom[gi]->normalMatrix);
     glUniform3fv(ctx->uniloc.objColor, 1, ctx->geom[gi]->objColor);

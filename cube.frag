@@ -24,9 +24,14 @@ in vec3 vnrm;
 
 out vec4 color;
 
+in vec3 fromEye;
+
+uniform mat4 inverseViewMatrix;
+
 void main() {
 
-	color = texture(cubeMap, texCoord);
+//	color = texture(cubeMap, texCoord);
+	color.rgb = texture(cubeMap, (inverseViewMatrix * vec4(reflect(fromEye, vnrm),1.0)).xyz).rgb;
 
 }
 

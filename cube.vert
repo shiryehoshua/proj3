@@ -28,14 +28,18 @@ out vec4 fragColor;
 out vec3 texCoord;
 out vec3 vnrm;
 
+out vec3 fromEye;
+
 void main() {
 
-	vec3 vnrm = normalMatrix * vertNorm;
+	vnrm = normalMatrix * vertNorm;
 	vec4 vVert4 = viewMatrix * modelMatrix * vertPos;
 	vec3 vEyeVertex = normalize(vVert4.xyz / vVert4.w);
 	vec4 vCoords = vec4(reflect(vEyeVertex, vnrm), 1.0);
 	vCoords = inverseViewMatrix * vCoords;
 	texCoord = normalize(vCoords.xyz);
+
+	fromEye = vEyeVertex;
 
   // transform vertices 
   gl_Position = projMatrix * viewMatrix * modelMatrix * vertPos;
