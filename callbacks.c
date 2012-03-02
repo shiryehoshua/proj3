@@ -323,6 +323,15 @@ void callbackMouseButton(int button, int action)
 void callbackMousePos(int xx, int yy)
 {
   GLfloat s[5];
+    // animation
+    double toc = spotTime();
+    if (gctx->ticMouse == -1)
+      gctx->ticMouse = toc;
+
+    // Change in time
+    double dt = toc - gctx->ticMouse;
+		printf(">>> %f\n", dt);
+
   if (gctx->buttonDown) {
     GLfloat xf = (float) xx / gctx->winSizeX;
     GLfloat yf = (float) yy / gctx->winSizeY;
@@ -333,34 +342,28 @@ void callbackMousePos(int xx, int yy)
 
     (gctx->mouseFun.f)(gctx->mouseFun.m, s, gctx->mouseFun.i);
 
-    // animation
-    double toc = spotTime();
-    if (gctx->ticMouse == -1)
-      gctx->ticMouse = toc;
-
-    // Change in time
-    double dt = toc - gctx->ticMouse;
-
     // Change in angle
     GLfloat dau, dav;
     dau = (float)(xx - gctx->lastX)/(gctx->winSizeX)*2*M_PI;
     dav = (float)(yy - gctx->lastY)/(gctx->winSizeY)*2*M_PI;
 
-    if (fabs(dau) < 0.009) {
-      gctx->thetaPerSecU = 0;
-    } else if (dt > 0) {
-      gctx->thetaPerSecU = dau/dt;
-    }
+//    if (fabs(dau) < 0.009) {
+//      gctx->thetaPerSecU = 0;
+//    } else if (dt > 0) {
+//      gctx->thetaPerSecU = dau/dt;
+			gctx->thetaPerSecU = 1;
+//    }
 
-    if (fabs(dav) < 0.009) {
-      gctx->thetaPerSecV = 0;
-    } else if (dt > 0) {
-      gctx->thetaPerSecV = dav/dt;
-    }
+//    if (fabs(dav) < 0.009) {
+//      gctx->thetaPerSecV = 0;
+//    } else if (dt > 0) {
+      //gctx->thetaPerSecV = dav/dt;
+			gctx->thetaPerSecV = 1;
+//    }
 
     gctx->ticMouse = toc;
 
-    printf("thetaPerSecond: %.6f, %.6f\n", gctx->thetaPerSecU, gctx->thetaPerSecV);
+//    printf("thetaPerSecond: %.6f, %.6f\n", gctx->thetaPerSecU, gctx->thetaPerSecV);
 
     // NOTE: We update lastX and lastY in both callbackMouseButton and callbackMousePos; We believe
     //       this produces better motion.

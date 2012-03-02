@@ -169,7 +169,7 @@ context_t *contextNew(unsigned int geomNum, unsigned int imageNum) {
 
     // create the objects
     //ctx->geom[0] = spotGeomNewSoftcube();
-    ctx->geom[0] = spotGeomNewSphere();
+    ctx->geom[0] = spotGeomNewSoftcube();
     ctx->geom[1] = spotGeomNewCube1();
 
     // scale the objects
@@ -456,28 +456,14 @@ int contextDraw(context_t *ctx) {
   const char me[]="contextDraw";
   unsigned int gi;
   GLfloat modelMat[16];
-  GLfloat thetaPerSecU, thetaPerSecV;
 
-  if (ctx->buttonDown) {
+//  if (ctx->buttonDown) {
     /* When the mouse is down, use a velocity of zero */
-    thetaPerSecU = 0;
-    thetaPerSecV = 0;
-  } else {
+//    thetaPerSecU = 0;
+//    thetaPerSecV = 0;
+//  } else {
     /* Otherwise, use the previous velocity */
-    thetaPerSecU = ctx->thetaPerSecU;
-    thetaPerSecV = ctx->thetaPerSecV;
-  }
-
-  double toc = spotTime();
-  if (ctx->ticDraw == -1)
-    ctx->ticDraw = toc;
-  double dt = toc - ctx->ticDraw;
-  ctx->ticDraw = toc;
-
-  gctx->angleU = thetaPerSecU * dt;
-  gctx->angleV = thetaPerSecV * dt;
-  fprintf(stderr, "ANGLEU: %f, ANGLEV: %f\n", gctx->angleU, gctx->angleV);
-  rotate_model_UV(gctx->angleU, gctx->angleV);
+//  }
 
   /* re-assert which program is being used (AntTweakBar uses its own) */
   glUseProgram(ctx->program); 
@@ -873,6 +859,32 @@ int main(int argc, const char* argv[]) {
   while (gctx->running) {
     // NOTE: we update UVN every step
     updateUVN(gctx->camera.uvn, gctx->camera.at, gctx->camera.from, gctx->camera.up);
+
+
+
+
+  GLfloat thetaPerSecU, thetaPerSecV;
+    thetaPerSecU = gctx->thetaPerSecU;
+    thetaPerSecV = gctx->thetaPerSecV;
+  double toc = spotTime();
+  if (gctx->ticDraw == -1)
+    gctx->ticDraw = toc;
+  double dt = toc - gctx->ticDraw;
+	gctx->ticDraw = toc;
+
+  gctx->angleU = 5;// * dt;
+  gctx->angleV = 5;// * dt;
+  fprintf(stderr, "ANGLEU: %f, ANGLEV: %f\n", gctx->angleU, gctx->angleV);
+  rotate_model_UV(0.2, 0.1);
+  //rotate_model_UV(gctx->angleU, gctx->angleV);
+
+
+
+
+
+
+
+
     /* render */
     if (contextDraw(gctx)) {
       fprintf(stderr, "%s: trouble drawing:\n", me);
@@ -889,7 +901,7 @@ int main(int argc, const char* argv[]) {
     /* Display rendering results */
     glfwSwapBuffers();
     /* NOTE: don't call glfwWaitEvents() if you want to redraw continuously */
-    glfwWaitEvents();
+//    glfwWaitEvents();
     /* quit if window was closed */
     if (!glfwGetWindowParam(GLFW_OPENED)) {
       gctx->running = 0;
