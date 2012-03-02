@@ -331,7 +331,6 @@ void callbackMousePos(int xx, int yy)
     s[0] = gctx->mouseFun.multiplier * s[0] + gctx->mouseFun.offset;
     s[1] = gctx->mouseFun.multiplier * s[1] + gctx->mouseFun.offset;
 
-//    fprintf(stderr, "s[i] = %f\n", s[gctx->mouseFun.i]); 
     (gctx->mouseFun.f)(gctx->mouseFun.m, s, gctx->mouseFun.i);
 
     // animation
@@ -359,17 +358,16 @@ void callbackMousePos(int xx, int yy)
       gctx->thetaPerSecV = dav/dt;
     }
 
-    gctx->angleU += dau;
-    gctx->angleV += dav;
     gctx->ticMouse = toc;
 
-//    printf("thetaPerSecond: %.6f, %.6f\n", gctx->thetaPerSecU, gctx->thetaPerSecV);
+    printf("thetaPerSecond: %.6f, %.6f\n", gctx->thetaPerSecU, gctx->thetaPerSecV);
 
     // NOTE: We update lastX and lastY in both callbackMouseButton and callbackMousePos; We believe
     //       this produces better motion.
     gctx->lastX = xx;
     gctx->lastY = yy;
   } else {
+    fprintf(stderr, "BUTTON IS NOT BEING PRESSED!! %f\n", spotTime());
     TwEventMousePosGLFW(xx, yy);
   }
 }

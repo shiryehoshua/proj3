@@ -358,6 +358,7 @@ int contextGLInit(context_t *ctx) {
   gctx->lightMode = 0;
   gctx->gouraudMode = 1;
   gctx->seamFix = 0;
+  gctx->spinning = 0;
   gctx->minFilter = GL_NEAREST;
   gctx->magFilter = GL_NEAREST;
   gctx->perVertexTexturingMode=1; // start in perVertexTexturingMode
@@ -455,8 +456,8 @@ int contextDraw(context_t *ctx) {
   const char me[]="contextDraw";
   unsigned int gi;
   GLfloat modelMat[16];
-
   GLfloat thetaPerSecU, thetaPerSecV;
+
   if (ctx->buttonDown) {
     /* When the mouse is down, use a velocity of zero */
     thetaPerSecU = 0;
@@ -472,6 +473,11 @@ int contextDraw(context_t *ctx) {
     ctx->ticDraw = toc;
   double dt = toc - ctx->ticDraw;
   ctx->ticDraw = toc;
+
+  gctx->angleU = thetaPerSecU * dt;
+  gctx->angleV = thetaPerSecV * dt;
+  fprintf(stderr, "ANGLEU: %f, ANGLEV: %f\n", gctx->angleU, gctx->angleV);
+  rotate_model_UV(gctx->angleU, gctx->angleV);
 
   /* re-assert which program is being used (AntTweakBar uses its own) */
   glUseProgram(ctx->program); 
@@ -525,16 +531,6 @@ int contextDraw(context_t *ctx) {
   glUniform1i(ctx->uniloc.gouraudMode, ctx->gouraudMode);
   glUniform1i(ctx->uniloc.seamFix, ctx->seamFix);
 
-  // enable animation
-  gctx->angleU += thetaPerSecU * dt;
-  gctx->angleV += thetaPerSecV * dt;
-  GLfloat u = 0.5 * (1 + cos(gctx->angleU));
-  GLfloat v = 0.5 * (1 + cos(gctx->angleV));
-  glUniform1f(ctx->uniloc.Zu, u);
-  glUniform1f(ctx->uniloc.Zv, v);
-  glUniform1f(ctx->uniloc.Zspread, ctx->Zspread);
-//  rotate_model_UV(gctx->angleU, gctx->angleV);
-  
   for (gi=0; gi<ctx->geomNum; gi++) {
     set_model_transform(modelMat, ctx->geom[gi]);
     glUniformMatrix4fv(ctx->uniloc.modelMatrix, 
