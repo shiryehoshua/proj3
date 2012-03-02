@@ -345,6 +345,7 @@ void callbackMousePos(int xx, int yy)
 
     (gctx->mouseFun.f)(gctx->mouseFun.m, s, gctx->mouseFun.i);
 
+    if (gctx->modelMode) {
     // Change in angle
     GLfloat dau, dav;
     dau = (float)(xx - gctx->lastX)/(gctx->winSizeX)*2*M_PI;
@@ -365,6 +366,7 @@ void callbackMousePos(int xx, int yy)
     }
 
     gctx->ticMouse = toc;
+    }
 
 //    printf("thetaPerSecond: %.6f, %.6f\n", gctx->thetaPerSecU, gctx->thetaPerSecV);
 
