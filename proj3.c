@@ -464,9 +464,8 @@ int contextDraw(context_t *ctx) {
 //  } else {
     /* Otherwise, use the previous velocity */
 //  }
-    thetaPerSecU = ctx->thetaPerSecU;
-    thetaPerSecV = ctx->thetaPerSecV;
-  }
+    GLfloat thetaPerSecU = ctx->thetaPerSecU;
+    GLfloat thetaPerSecV = ctx->thetaPerSecV;
 
   double toc = spotTime();
   if (ctx->ticDraw == -1)
