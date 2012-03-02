@@ -30,10 +30,10 @@ out vec3 vnrm;
 
 void main() {
 
-	vec3 vEyeNormal = normalMatrix * vertNorm;
-	vec4 vVert4 = viewMatrix * vertPos;
+	vec3 vnrm = normalMatrix * vertNorm;
+	vec4 vVert4 = viewMatrix * modelMatrix * vertPos;
 	vec3 vEyeVertex = normalize(vVert4.xyz / vVert4.w);
-	vec4 vCoords = vec4(reflect(vEyeVertex, vEyeNormal), 1.0);
+	vec4 vCoords = vec4(reflect(vEyeVertex, vnrm), 1.0);
 	vCoords = inverseViewMatrix * vCoords;
 	//vCoords = viewMatrix * vCoords;
 	texCoord = normalize(vCoords.xyz);
