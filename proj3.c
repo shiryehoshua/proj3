@@ -196,7 +196,7 @@ context_t *contextNew(unsigned int geomNum, unsigned int imageNum) {
     spotImageLoadPNG(ctx->image[3], "textimg/check-rgb.png");
 
 		//spotImageLoadPNG(ctx->image[4], "textimg/cube-sample.png");
-		spotImageLoadPNG(ctx->image[4], "textimg/cube-cool.png");
+		spotImageLoadPNG(ctx->image[4], "textimg/cube-sample.png");
 
     // set lighting constants
     ctx->geom[0]->Kd = 0.4;
