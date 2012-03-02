@@ -25,17 +25,22 @@ extern "C" {
 #define TBAR_NAME "Project2-Params"
 
 // NOTE: Shaders are populated in our main
-#define NUM_PROGRAMS 5
+#define NUM_PROGRAMS 7
 // NOTE: easy program lookup--refer to programIds[ID_${shader}] for the id to use with
 //       `glLinkProgram'
-#define ID_SIMPLE 0
-#define ID_PHONG 1
-#define ID_TEXTURE 2
-#define ID_BUMP 3
-#define ID_PARALLAX 4
+#define ID_CUBE 0
+#define ID_SIMPLE 1
+#define ID_PHONG 2
+#define ID_TEXTURE 3
+#define ID_BUMP 4
+#define ID_PARALLAX 5
+#define ID_SPOTLIGHT 6
 
 enum BumpMappingModes {Disabled, Bump, Parallax};
 enum FilteringModes {Nearest, Linear, NearestWithMipmap, LinearWithMipmap};
+enum Objects {Sphere, Softcube, Cube};
+enum CubeMaps {CubeSample, CubeCool, CubePlace};
+enum Shaders {PhongShader, CubeShader, SpotlightShader};
 
 /*
 ** The camera_t is a suggested storage place for all the parameters associated
@@ -100,6 +105,10 @@ typedef struct {
   GLint projMatrix;   /* possible name of projection matrix in vertex shader */
   /* ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ */
   GLint spotPoint;    /* point in view space coords that spot comes from */
+  GLint penumbra; 
+	GLint spotUp;
+	GLint spotMatrix;
+  GLint rStart, rEnd;
   GLint lightDir;     /* same name as field in context_t */
   GLint lightColor;   /* same name as field in context_t */
   GLint gouraudMode;  /* same name as field in context_t */
@@ -156,7 +165,8 @@ typedef struct {
     gouraudMode,          /* 1 when in gouraud mode, 0 otherwise */
     perVertexTexturingMode,
     seamFix,
-    spinning;
+    spinning,
+		cubeMapId;
   enum BumpMappingModes bumpMappingMode;
   enum FilteringModes filteringMode;
   GLint minFilter, magFilter;
@@ -171,9 +181,12 @@ typedef struct {
   double ticDraw,         /* last abs time contextDraw was called */
     ticMouse;             /* last abs time callbackMousePos was called */
   GLfloat thetaPerSecU,   /* radians per second along U */
-    thetaPerSecV;         /* radians per second along V */
+    thetaPerSecV,         /* radians per second along V */
+		thetaPerSecN;
   GLfloat angleU,         /* abs angle of beam along U */
-    angleV;               /* abs angle of beam along V */
+    angleV,               /* abs angle of beam along V */
+		angleN;
+	int onlyN;
 } context_t;
 
 #ifdef __cplusplus

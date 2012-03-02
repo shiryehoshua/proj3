@@ -26,6 +26,11 @@ void rotate_2nd_V3(GLfloat x[3], GLfloat *uvn, GLfloat *s, size_t i);
 void rotate_3rd_V3(GLfloat x[3], GLfloat *uvn, GLfloat *s, size_t i);
 void rotate_1st_2nd_V3(GLfloat x[3], GLfloat *uvn, GLfloat *s, size_t i);
 
+void rotate_spotlight(GLfloat t, int i);
+void rotate_spotlight_U(GLfloat t);
+void rotate_spotlight_V(GLfloat t);
+void rotate_spotlight_N(GLfloat t);
+
 void rotate_view(GLfloat t, int i);
 void rotate_view_U(GLfloat t);
 void rotate_view_V(GLfloat t);
@@ -41,6 +46,10 @@ void m_rotate_1st_V3(GLfloat *t, GLfloat *s, size_t i);
 void m_rotate_2nd_V3(GLfloat *t, GLfloat *s, size_t i);
 void m_rotate_3rd_V3(GLfloat *t, GLfloat *s, size_t i);
 void m_rotate_1st_2nd_V3(GLfloat *t, GLfloat *s, size_t i);
+void m_rotate_spotlight_U(GLfloat *t, GLfloat *s, size_t i);
+void m_rotate_spotlight_V(GLfloat *t, GLfloat *s, size_t i);
+void m_rotate_spotlight_N(GLfloat *t, GLfloat *s, size_t i);
+void m_rotate_spotlight_UV(GLfloat *t, GLfloat *s, size_t i);
 void m_rotate_view_U(GLfloat *t, GLfloat *s, size_t i);
 void m_rotate_view_V(GLfloat *t, GLfloat *s, size_t i);
 void m_rotate_view_N(GLfloat *t, GLfloat *s, size_t i);
@@ -63,6 +72,7 @@ void translate_1st_3rd_3D(GLfloat m[4*4], GLfloat *s, size_t i);
 void translate_2nd_3rd_3D(GLfloat m[4*4], GLfloat *s, size_t i);
 
 void scale_near_far(GLfloat *f, GLfloat *s, size_t i);
+void scale_near_far2(GLfloat *f, GLfloat *s, size_t i);
 
 void scale(GLfloat xyzw[4*4], GLfloat *s);
 

@@ -121,8 +121,11 @@ void callbackKeyboard(int key, int action)
         v = 0.125;
         if (gctx->modelMode) {
           rotate_model_U(0.05);
+				} else if (gctx->lightMode) {
+          rotate_spotlight_U(v);
         } else {
           rotate_view_U(v);
+          rotate_spotlight_U(v);
         }
         break;
 
@@ -131,8 +134,11 @@ void callbackKeyboard(int key, int action)
         v= -0.125;
         if (gctx->modelMode) {
           rotate_model_U(-0.05);
-        } else {
+        } else if (gctx->lightMode) {
+					rotate_spotlight_U(v);
+				} else {
           rotate_view_U(v);
+					rotate_spotlight_U(v);
         }
         break;
 
@@ -141,8 +147,11 @@ void callbackKeyboard(int key, int action)
         v= -0.125;
         if (gctx->modelMode) {
           rotate_model_V(-0.05);
+				} else if (gctx->lightMode) {
+					rotate_spotlight_V(v);
         } else {
           rotate_view_V(v);
+					rotate_spotlight_V(v);
         }
         break;
 
@@ -151,8 +160,11 @@ void callbackKeyboard(int key, int action)
         v = 0.125;
         if (gctx->modelMode) {
           rotate_model_V(0.05);
+				} else if (gctx->lightMode) {
+					rotate_spotlight_V(v);
         } else {
           rotate_view_V(v);
+					rotate_spotlight_V(v);
         }
         break;
 
@@ -233,6 +245,7 @@ void callbackMouseButton(int button, int action)
   gctx->mouseFun.f = identity;
   gctx->mouseFun.offset = 0;
   gctx->mouseFun.multiplier = 1;
+	gctx->onlyN = 0;
 
   if (GLFW_PRESS == action) {
     xf = (float) xx / gctx->winSizeX;
@@ -245,12 +258,20 @@ void callbackMouseButton(int button, int action)
           gctx->mouseFun.m = NULL;
           gctx->mouseFun.f = m_rotate_view_N;
         } else if (gctx->lightMode) {
-          printf(" ... (mode L) rotates light direction around N\n");
-          gctx->mouseFun.m = gctx->lightDir;
-          gctx->mouseFun.f = m_rotate_3rd_V3;
-          gctx->mouseFun.multiplier = 10;
+					if (gctx->program != programIds[ID_SPOTLIGHT]) {
+						printf(" ... (mode L) rotates light direction around N\n");
+						gctx->mouseFun.m = gctx->lightDir;
+						gctx->mouseFun.f = m_rotate_3rd_V3;
+						gctx->mouseFun.multiplier = 10;
+					} else {
+						printf(" ... (mode L) rotates spotlight direction around N\n");
+						gctx->mouseFun.m = NULL;
+						gctx->mouseFun.f = m_rotate_spotlight_N;
+					}
         } else if (gctx->modelMode) {
-          printf(" ... (mode L) rotates light direction around N\n");
+          printf(" ... (mode L) rotates model around N\n");
+					// Do nothing here
+					gctx->onlyN = 1;
           gctx->mouseFun.m = NULL;
           gctx->mouseFun.f = m_rotate_model_N; 
         }
@@ -287,7 +308,11 @@ void callbackMouseButton(int button, int action)
           gctx->mouseFun.m = NULL;
           gctx->mouseFun.f = scale_near_far;
           gctx->mouseFun.multiplier = 0.25;
-        }
+        } else if (gctx->lightMode) {
+					gctx->mouseFun.m = NULL;
+					gctx->mouseFun.f = scale_near_far2;
+					gctx->mouseFun.multiplier = 0.25;
+				}
       }
     } else {
       if (!gctx->shiftDown) {
@@ -297,9 +322,16 @@ void callbackMouseButton(int button, int action)
           gctx->mouseFun.f = m_rotate_view_UV;
           gctx->mouseFun.multiplier = 2;
         } else if (gctx->lightMode) {
-          printf(" ... (mode L) rotates light direction around U and V\n");
-          gctx->mouseFun.m = gctx->lightDir;
-          gctx->mouseFun.f = m_rotate_1st_2nd_V3;
+					if (gctx->program != programIds[ID_SPOTLIGHT]) {
+						printf(" ... (mode L) rotates light direction around U and V\n");
+						gctx->mouseFun.m = gctx->lightDir;
+						gctx->mouseFun.f = m_rotate_1st_2nd_V3;
+					} else {
+						printf(" ... (mode L) rotates spotlight direction around U and V\n");
+						gctx->mouseFun.m = NULL;
+						gctx->mouseFun.f = m_rotate_spotlight_UV;
+						gctx->mouseFun.multiplier = 2;
+					}
         } else if (gctx->modelMode) {
           printf(" ... (mode L) rotates model around U and V\n");
           gctx->mouseFun.m = NULL;
@@ -346,27 +378,32 @@ void callbackMousePos(int xx, int yy)
     (gctx->mouseFun.f)(gctx->mouseFun.m, s, gctx->mouseFun.i);
 
     if (gctx->modelMode && !gctx->shiftDown) {
-    // Change in angle
-    GLfloat dau, dav;
-    dau = (float)(xx - gctx->lastX)/(gctx->winSizeX)*2*M_PI;
-    dav = (float)(yy - gctx->lastY)/(gctx->winSizeY)*2*M_PI;
+			// Change in angle
+			GLfloat dau, dav;
+			dau = (float)(xx - gctx->lastX)/(gctx->winSizeX)*2*M_PI;
+			dav = (float)(yy - gctx->lastY)/(gctx->winSizeY)*2*M_PI;
 
-    if (fabs(dau) < 0.009) {
-      gctx->thetaPerSecU = 0;
-    } else if (dt > 0) {
-      gctx->thetaPerSecU = dau/dt;
-//			gctx->thetaPerSecU = 1;
-    }
+			if (!gctx->onlyN) {
+				if (fabs(dau) < 0.009) {
+					gctx->thetaPerSecU = 0;
+				} else if (dt > 0) {
+					gctx->thetaPerSecU = dau/dt;
+				}
 
-    if (fabs(dav) < 0.009) {
-      gctx->thetaPerSecV = 0;
-    } else if (dt > 0) {
-      gctx->thetaPerSecV = dav/dt;
-			//gctx->thetaPerSecV = 1;
-    }
-
-    gctx->ticMouse = toc;
-    }
+				if (fabs(dav) < 0.009) {
+					gctx->thetaPerSecV = 0;
+				} else if (dt > 0) {
+					gctx->thetaPerSecV = dav/dt;
+				}
+			} else {
+				if (fabs(dau) < 0.009) {
+					gctx->thetaPerSecN = 0;
+				} else if (dt > 0) {
+					gctx->thetaPerSecN = dau/dt;
+				}
+			}
+			gctx->ticMouse = toc;
+		}
 
 //    printf("thetaPerSecond: %.6f, %.6f\n", gctx->thetaPerSecU, gctx->thetaPerSecV);
 

@@ -79,6 +79,48 @@ void rotate_1st_2nd_V3(GLfloat x[3], GLfloat *uvn, GLfloat *s, size_t i)
   rotate_V3(x, v, s, i);
 }
 
+void rotate_spotlight(GLfloat v, int i)
+{
+  GLfloat temp[3], w[3];
+
+  // temp = from - at
+  SPOT_V3_SUB(temp, gctx->spotlight.from, gctx->spotlight.at);
+
+  // rotate from - at around the proper axis
+  copy_V3(w, gctx->spotlight.uvn, i);
+  rotate_V3(temp, w, &v, 0);
+  SPOT_V3_ADD(gctx->spotlight.from, temp, gctx->spotlight.at);
+
+  // rotate the light around the proper axis
+  rotate_V3(gctx->lightDir, w, &v, 0);
+
+  // rotate spotlight around the proper axis
+  rotate_V3(gctx->spotlight.from, w, &v, 0);
+
+  if (!gctx->spotlight.fixed)
+    rotate_V3(gctx->spotlight.up, w, &v, 0);
+}
+
+void rotate_spotlight_U(GLfloat z)
+{
+  rotate_spotlight(z, 0);
+}
+
+void rotate_spotlight_V(GLfloat z) 
+{
+  rotate_spotlight(z, 1);
+}
+
+void rotate_spotlight_N(GLfloat x) 
+{
+  GLfloat temp[3], n[3], l;
+  copy_3rd_V3(n, gctx->spotlight.uvn);
+  // rotate the up vector
+  SPOT_V3_COPY(temp, gctx->spotlight.up);
+  rotate_V3(temp, n, &x, 0);
+  SPOT_V3_NORM(gctx->spotlight.up, temp, l);
+};
+
 void rotate_view(GLfloat v, int i)
 {
   GLfloat temp[3], w[3];
@@ -178,6 +220,27 @@ void m_rotate_3rd_V3(GLfloat *t, GLfloat *s, size_t i)
 void m_rotate_1st_2nd_V3(GLfloat *t, GLfloat *s, size_t i)
 {
   rotate_1st_2nd_V3(t, gctx->camera.uvn, s, i);
+}
+
+void m_rotate_spotlight_U(GLfloat *t, GLfloat *s, size_t i)
+{
+  rotate_spotlight_U(s[i]);
+}
+
+void m_rotate_spotlight_V(GLfloat *t, GLfloat *s, size_t i)
+{
+  rotate_spotlight_V(s[i]);
+}
+
+void m_rotate_spotlight_N(GLfloat *t, GLfloat *s, size_t i)
+{
+  rotate_spotlight_N(s[i]);
+}
+
+void m_rotate_spotlight_UV(GLfloat *t, GLfloat *s, size_t i)
+{
+  rotate_spotlight_U(s[i+1]);
+  rotate_spotlight_V(-s[i]);
 }
 
 void m_rotate_view_U(GLfloat *t, GLfloat *s, size_t i)
@@ -326,6 +389,21 @@ void translate_2nd_3rd_3D(GLfloat m[4*4], GLfloat *s, size_t i)
 }
 
 /* Scaling */
+
+void scale_near_far2(GLfloat *t, GLfloat *s, size_t i)
+{
+  gctx->spotlight.near += s[i];
+  gctx->spotlight.far  -= s[i];
+  gctx->spotlight.fov  -= 0.5*s[i];
+//  gctx->camera.fov = atanf((tanf(gctx->camera.fov / 2)*(gctx->camera.near - s[i]))/gctx->camera.near);
+  fprintf(stderr, "SPOTLIGHT: far - near = %f - %f = %f\nfov = %f\n",
+    gctx->spotlight.far, gctx->spotlight.near,
+    gctx->spotlight.far - gctx->spotlight.near,
+    gctx->spotlight.fov);
+
+//  callbackResize(gctx->winSizeX, gctx->winSizeY);
+
+}
 
 void scale_near_far(GLfloat *t, GLfloat *s, size_t i)
 {

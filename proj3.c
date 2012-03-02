@@ -33,14 +33,24 @@ int programIds[NUM_PROGRAMS+1];       // List of corresponding program ids (for 
 context_t *gctx = NULL;
 
 // Values for tweak bar
-TwType twBumpMappingModes, twFilteringModes;
+TwType twBumpMappingModes, twFilteringModes, twObjects, twCubeMaps, twShaders;
 TwEnumVal twBumpMappingModesEV[]={{Disabled, "Disabled"},
                                   {Bump, "Bump"},
                                   {Parallax, "Parallax"}},
           twFilteringModesEV[]  ={{Nearest, "Nearest"},
                                   {Linear, "Linear"},
                                   {NearestWithMipmap, "NearestWithMipmap"},
-                                  {LinearWithMipmap, "LinearWithMipmap"}};
+                                  {LinearWithMipmap, "LinearWithMipmap"}},
+					twObjectsEV[]					={{Sphere, "Sphere"},
+																	{Softcube, "Softcube"},
+																	{Cube, "Cube"}},
+					twCubeMapsEV[]				={{CubeSample, "cube-sample.png"},
+																	{CubeCool, "cube-cool.png"},
+																	{CubePlace, "cube-place.png"}},
+					twShadersEV[]					={{PhongShader, "phong.{vert,frag}"},
+																	{CubeShader, "cube.{vert,frag}"},
+																	{SpotlightShader, "spotlight.{vert,frag}"}};
+
 
 // NOTE: we'd prefer to only draw one shape at a time, while keeping a sphere and
 //       square in memory. This variable gets referenced in contextDraw and does just
@@ -164,29 +174,30 @@ context_t *contextNew(unsigned int geomNum, unsigned int imageNum) {
   ctx->shiftDown = 0;
   ctx->Zspread = 0.003;
 
-  // NOTE: here we make our sphere and square and load our image and bump map
-  if (2 == geomNum) {
-
     // create the objects
     //ctx->geom[0] = spotGeomNewSoftcube();
-    ctx->geom[0] = spotGeomNewSoftcube();
-    ctx->geom[1] = spotGeomNewCube1();
+    ctx->geom[0] = spotGeomNewSphere();
+    ctx->geom[1] = spotGeomNewSoftcube();
+    ctx->geom[2] = spotGeomNewCube1();
 
     // scale the objects
     scaleGeom(ctx->geom[0], 0.15);
     scaleGeom(ctx->geom[1], 0.15);
+    scaleGeom(ctx->geom[2], 0.15);
 
     // color the objects
-    SPOT_V3_SET(ctx->geom[1]->objColor, 1.0f, 0.0f, 0.0f);
-    SPOT_V3_SET(ctx->geom[0]->objColor, 1.0f, 0.0f, 1.0f);
+    SPOT_V3_SET(ctx->geom[0]->objColor, 1, 0, 0);
+    SPOT_V3_SET(ctx->geom[1]->objColor, 0, 1, 0);
+    SPOT_V3_SET(ctx->geom[2]->objColor, 0, 0, 1);
 
     // translate the objects
-//    translateGeomU(ctx->geom[0], 1.0f);
-    translateGeomU(ctx->geom[1], -2.0f);
+    translateGeomU(ctx->geom[1], 2.0f);
+    translateGeomU(ctx->geom[2], -2.0f);
 
     // set orientation
     SPOT_V4_SET(ctx->geom[0]->quaternion, 1.0f, 0.0f, 0.0f, 0.0f);
     SPOT_V4_SET(ctx->geom[1]->quaternion, 1.0f, 0.0f, 0.0f, 0.0f);
+    SPOT_V4_SET(ctx->geom[2]->quaternion, 1.0f, 0.0f, 0.0f, 0.0f);
 
     // load images
     spotImageLoadPNG(ctx->image[0], "textimg/uchic-rgb.png");     // texture
@@ -197,6 +208,8 @@ context_t *contextNew(unsigned int geomNum, unsigned int imageNum) {
 
 		//spotImageLoadPNG(ctx->image[4], "textimg/cube-sample.png");
 		spotImageLoadPNG(ctx->image[4], "textimg/cube-sample.png");
+		spotImageLoadPNG(ctx->image[5], "textimg/cube-cool.png");
+		spotImageLoadPNG(ctx->image[6], "textimg/cube-place.png");
 
     // set lighting constants
     ctx->geom[0]->Kd = 0.4;
@@ -205,15 +218,24 @@ context_t *contextNew(unsigned int geomNum, unsigned int imageNum) {
     ctx->geom[1]->Kd = 0.4;
     ctx->geom[1]->Ks = 0.3;
     ctx->geom[1]->Ka = 0.3;
-  }
+    ctx->geom[2]->Kd = 0.4;
+    ctx->geom[2]->Ks = 0.3;
+    ctx->geom[2]->Ka = 0.3;
 
   ctx->ticDraw = -1;
   ctx->ticMouse = -1;
   ctx->thetaPerSecU = 0;
   ctx->thetaPerSecV = 0;
+  ctx->thetaPerSecN = 0;
+	ctx->onlyN = 0;
+
+	ctx->cubeMapId = 2;
 
   ctx->angleU = 0;
   ctx->angleV = 0;
+  ctx->angleN = 0;
+
+	ctx->gi = 1;
 
   return ctx;
 }
@@ -226,6 +248,10 @@ void setUnilocs() {
 #define SET_UNILOC(V) gctx->uniloc.V = glGetUniformLocation(gctx->program, #V)
       SET_UNILOC(lightDir);
       SET_UNILOC(spotPoint);
+      SET_UNILOC(penumbra);
+      SET_UNILOC(rStart);
+      SET_UNILOC(rEnd);
+			SET_UNILOC(spotUp);
       SET_UNILOC(lightColor);
       SET_UNILOC(modelMatrix);
       SET_UNILOC(normalMatrix);
@@ -266,6 +292,8 @@ int contextGLInit(context_t *ctx) {
 
   // NOTE: here is our shader "stack"; the ID_${shader} definitions allow easy retrieval of the
   //       program id from the programIds array after `glLinkProgram' calls
+  vertFnames[ID_CUBE]="cube.vert";
+  fragFnames[ID_CUBE]="cube.frag";
   vertFnames[ID_SIMPLE]="simple.vert";
   fragFnames[ID_SIMPLE]="simple.frag";
   vertFnames[ID_PHONG]="phong.vert";
@@ -276,6 +304,8 @@ int contextGLInit(context_t *ctx) {
   fragFnames[ID_BUMP]="bump.frag";
   vertFnames[ID_PARALLAX]="parallax.vert";
   fragFnames[ID_PARALLAX]="parallax.frag";
+  vertFnames[ID_SPOTLIGHT]="spotlight.vert";
+  fragFnames[ID_SPOTLIGHT]="spotlight.frag";
 
   // NOTE: we loop for as many shaders as are in our "stack" (NUM_PROGRAMS), and then once more
   //       to pull in whatever shader was passed in via the terminal (or not, if we have
@@ -318,8 +348,7 @@ int contextGLInit(context_t *ctx) {
   // NOTE: the following is equivalent to hitting '1' on the keyboard; i.e. default
   //       scene
   if (ctx->vertFname==NULL) {
-    gctx->program=programIds[ID_PHONG];
-    gctx->gouraudMode=1;
+    gctx->program=programIds[ID_SPOTLIGHT];
   }
 
   // NOTE: this sets the uniform locations for the _invoked_ shader
@@ -338,7 +367,7 @@ int contextGLInit(context_t *ctx) {
 				printf("ii: %d\n", ii);
       if (ctx->image[ii]->data.v) {
         // Only bother with GL init when image data has been set
-				if (ii==4) { // 4 is our cubemap
+				if (ii==4 || ii==5 || ii==6) { // 5 is our cubemap
 					if (spotImageCubeMapGLInit(ctx->image[ii])) {
 						spotErrorAdd("%s: trouble with image[%u]", me, ii);
 						return 1;
@@ -398,9 +427,14 @@ int contextGLInit(context_t *ctx) {
   gctx->spotlight.up[1] = 1;
   gctx->spotlight.up[2] = 0;
   SPOT_V3_SET(gctx->spotlight.from, 0.0f, 0.0f, -5.0f);
+	// Always 0,0,0
   gctx->spotlight.at[0] = 0;
   gctx->spotlight.at[1] = 0;
   gctx->spotlight.at[2] = 0;
+	gctx->spotlight.from[0] = 0;
+	gctx->spotlight.from[0] = 0;
+	gctx->spotlight.from[0] = -1;
+	gctx->spotlight.fixed = 0; // CHECK
 
   // NOTE: Mouse function intializations
   gctx->mouseFun.m = NULL;
@@ -471,16 +505,18 @@ int contextDraw(context_t *ctx) {
   const char me[]="contextDraw";
   unsigned int gi;
   GLfloat modelMat[16];
-  GLfloat thetaPerSecU, thetaPerSecV;
+  GLfloat thetaPerSecU, thetaPerSecV, thetaPerSecN;
 
   if (ctx->buttonDown) {
     /* When the mouse is down, use a velocity of zero */
     thetaPerSecU = 0;
     thetaPerSecV = 0;
+    thetaPerSecN = 0;
   } else {
     /* Otherwise, use the previous velocity */
     thetaPerSecU = ctx->thetaPerSecU;
     thetaPerSecV = ctx->thetaPerSecV;
+    thetaPerSecN = ctx->thetaPerSecN;
   }
 
   double toc = spotTime();
@@ -491,7 +527,9 @@ int contextDraw(context_t *ctx) {
 
   gctx->angleU = (thetaPerSecU * dt) * 0.1;
   gctx->angleV = (thetaPerSecV * dt) * 0.1;
+  gctx->angleN = (thetaPerSecN * dt) * 0.1;
   rotate_model_UV(gctx->angleU, -gctx->angleV);
+	rotate_model_N(-gctx->angleN);
 
   /* re-assert which program is being used (AntTweakBar uses its own) */
   glUseProgram(ctx->program); 
@@ -515,7 +553,7 @@ int contextDraw(context_t *ctx) {
      informative */
 
   glActiveTexture(GL_TEXTURE0);
-  glBindTexture(GL_TEXTURE_CUBE_MAP, ctx->image[4]->textureId);
+  glBindTexture(GL_TEXTURE_CUBE_MAP, ctx->image[4+ctx->cubeMapId]->textureId);
   glUniform1i(ctx->uniloc.cubeMap, 0);
 
   // NOTE: recall that image[0] is "uchic-rgb.png"
@@ -542,6 +580,10 @@ int contextDraw(context_t *ctx) {
   glUniformMatrix4fv(ctx->uniloc.projMatrix, 1, GL_FALSE, gctx->camera.proj);
   glUniform3fv(ctx->uniloc.lightDir, 1, ctx->lightDir);
   glUniform3fv(ctx->uniloc.spotPoint, 1, ctx->spotlight.from);
+  glUniform3fv(ctx->uniloc.spotUp, 1, ctx->spotlight.up);
+	glUniform1f(ctx->uniloc.penumbra, ctx->spotlight.fov);
+	glUniform1f(ctx->uniloc.rStart, ctx->spotlight.near);
+	glUniform1f(ctx->uniloc.rEnd, ctx->spotlight.far);
   glUniform3fv(ctx->uniloc.lightColor, 1, ctx->lightColor);
   glUniform1i(ctx->uniloc.gouraudMode, ctx->gouraudMode);
   glUniform1i(ctx->uniloc.seamFix, ctx->seamFix);
@@ -648,6 +690,74 @@ static void TW_CALL getBumpMappingCallback(void *value, void *clientData) {
   *((int *) value) = gctx->bumpMappingMode;
 }
 
+static void TW_CALL setCubeMapCallback(const void *value, void *clientData) {
+	enum CubeMaps cubemap = *((const enum CubeMaps *) value);
+	switch (cubemap) {
+		case CubeSample:
+			gctx->cubeMapId = 0;
+			break;
+		case CubeCool:
+			gctx->cubeMapId = 1;
+			break;
+		case CubePlace:
+			gctx->cubeMapId = 2;
+			break;
+	}
+}
+
+static void TW_CALL getCubeMapCallback(void *value, void *clientData) {
+  *((int *) value) = gctx->cubeMapId;
+}
+static void TW_CALL setShaderCallback(const void *value, void *clientData) {
+	enum Shaders shader = *((const enum Shaders *) value);
+	switch (shader) {
+		case PhongShader:
+			gctx->program = programIds[ID_PHONG];
+			setUnilocs();
+			break;
+		case CubeShader:
+			gctx->program = programIds[ID_CUBE];
+			setUnilocs();
+			break;
+		case SpotlightShader:
+			gctx->program = programIds[ID_SPOTLIGHT];
+			setUnilocs();
+			break;
+	}
+}
+
+static void TW_CALL getShaderCallback(void *value, void *clientData) {
+	enum Shaders shader;
+	if (gctx->program==programIds[ID_PHONG]) {
+		shader = PhongShader;
+	} else if (gctx->program==programIds[ID_CUBE]) {
+		shader = CubeShader;
+	} else {
+		shader = SpotlightShader;
+	}
+  *((int *) value) = shader;
+}
+
+static void TW_CALL setObjectCallback(const void *value, void *clientData) {
+	enum Objects object = *((const enum Objects *) value);
+	switch (object) {
+		case Sphere:
+			gctx->gi = 0;
+			break;
+		case Softcube:
+			gctx->gi = 1;
+			break;
+		case Cube:
+			gctx->gi = 2;
+			break;
+	}
+}
+
+static void TW_CALL getObjectCallback(void *value, void *clientData) {
+  *((int *) value) = gctx->gi;
+}
+
+
 static void TW_CALL setFilteringCallback(const void *value, void *clientData) {
   gctx->filteringMode = *((const enum FilteringModes *) value);
   switch (gctx->filteringMode) {
@@ -697,9 +807,18 @@ int updateTweakBarVars(int scene) {
   if (!EE) EE |= !TwAddVarRW(gctx->tbar, "shexp",
                              TW_TYPE_FLOAT, &(gctx->geom[0]->shexp),
                              " label='shexp' min=0.0 max=100.0 step=0.05");
-  if (!EE) EE |= !TwAddVarRW(gctx->tbar, "object",
-                             TW_TYPE_BOOL8, &(gctx->gi),
-                             " label='object' true=Cube false=Softcube"); 
+  if (!EE) EE |= !TwAddVarCB(gctx->tbar, "shader",
+														 twShaders, setShaderCallback,
+														 getShaderCallback, &(gctx->program),
+														 " label='shader'");
+  if (!EE) EE |= !TwAddVarCB(gctx->tbar, "object",
+														 twObjects, setObjectCallback,
+														 getObjectCallback, &(gctx->gi),
+														 " label='object'");
+  if (!EE) EE |= !TwAddVarCB(gctx->tbar, "cubemap",
+														 twCubeMaps, setCubeMapCallback,
+														 getCubeMapCallback, &(gctx->cubeMapId),
+														 " label='cubemap'");
   if (!EE) EE |= !TwAddVarRW(gctx->tbar, "bgColor",
                              TW_TYPE_COLOR3F, &(gctx->bgColor),
                              " label='bkgr color' ");
@@ -751,6 +870,9 @@ int createTweakBar(context_t *ctx, int scene) {
   // NOTE: these are nice to have
   twBumpMappingModes=TwDefineEnum("BumpMappingModes", twBumpMappingModesEV, 3);
   twFilteringModes=TwDefineEnum("FilteringModes", twFilteringModesEV, 4);
+  twObjects=TwDefineEnum("Objects", twObjectsEV, 3);
+  twCubeMaps=TwDefineEnum("CubeMap", twCubeMapsEV, 3);
+  twShaders=TwDefineEnum("Shader", twShadersEV, 3);
   
   /* Create a tweak bar for interactive parameter adjustment */
   if (!EE) EE |= !(ctx->tbar = TwNewBar(TBAR_NAME));
@@ -808,7 +930,7 @@ int main(int argc, const char* argv[]) {
     exit(1);
   }
 
-  if (!(gctx = contextNew(2, 5))) { // 10 Images!
+  if (!(gctx = contextNew(3, 7))) {
     fprintf(stderr, "%s: context set-up problem:\n", me);
     spotErrorPrint();
     spotErrorClear();
