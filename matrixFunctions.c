@@ -94,6 +94,9 @@ void rotate_view(GLfloat v, int i)
   // rotate the light around the proper axis
   rotate_V3(gctx->lightDir, w, &v, 0);
 
+  // rotate spotlight around the proper axis
+  rotate_V3(gctx->spotlight.from, w, &v, 0);
+
   if (!gctx->camera.fixed)
     rotate_V3(gctx->camera.up, w, &v, 0);
 }
