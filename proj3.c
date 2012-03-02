@@ -464,6 +464,19 @@ int contextDraw(context_t *ctx) {
 //  } else {
     /* Otherwise, use the previous velocity */
 //  }
+    thetaPerSecU = ctx->thetaPerSecU;
+    thetaPerSecV = ctx->thetaPerSecV;
+  }
+
+  double toc = spotTime();
+  if (ctx->ticDraw == -1)
+    ctx->ticDraw = toc;
+  double dt = toc - ctx->ticDraw;
+  ctx->ticDraw = toc;
+
+  gctx->angleU = (thetaPerSecU * dt) * 0.1;
+  gctx->angleV = (thetaPerSecV * dt) * 0.1;
+  rotate_model_UV(gctx->angleU, -gctx->angleV);
 
   /* re-assert which program is being used (AntTweakBar uses its own) */
   glUseProgram(ctx->program); 
