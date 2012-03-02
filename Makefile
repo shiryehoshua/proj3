@@ -19,8 +19,8 @@ LIBS=libglfw
 
 # Add the appropriate flags for each of our libraries using pkg-config
 ifeq ($(strip $(IS_MACLAB)), $(GLFW_DIR_MACLAB))
-CFLAGS+=-I$(GLFW_DIR_MACLAB)/include `pkg-config --cflags $(LIBS)`
-LFLAGS+=-L$(GLFW_DIR_MACLAB)/lib `pkg-config --libs $(LIBS)` ../lib/libAntTweakBar.dylib\
+CFLAGS+=-Wall -O2 -g -I/opt/gfx/include -I../include
+LFLAGS+=-L/opt/gfx/lib -lglfw -framework Cocoa -framework OpenGL -lz ../lib/libAntTweakBar.dylib\
 				../lib/libpng15.a
 else
 LIBS+=libpng
