@@ -240,7 +240,7 @@ void translate_model_UV(GLfloat *t, GLfloat *s, size_t i)
 
 void translate_model_N(GLfloat *t, GLfloat *s, size_t i)
 {
-  int j; for (j=0; j<gctx->geomNum; j++) { t=gctx->geom[j]->modelMatrix;
+  t=gctx->geom[gctx->gi]->modelMatrix;
   GLfloat n[3], m[3], l;
   SPOT_V3_SUB(n, gctx->camera.from, gctx->camera.at);
   SPOT_V3_NORM(m, n, l);
@@ -248,7 +248,6 @@ void translate_model_N(GLfloat *t, GLfloat *s, size_t i)
   m[1] *= s[i];
   m[2] *= s[i];
   translate(t, m);
-  }
 }
 
 void translate_view_UV(GLfloat *t, GLfloat *s, size_t i)
