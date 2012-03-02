@@ -153,7 +153,8 @@ typedef struct {
     lightMode,            /* 1 when in light mode, 0 otherwise */
     gouraudMode,          /* 1 when in gouraud mode, 0 otherwise */
     perVertexTexturingMode,
-    seamFix;
+    seamFix,
+    spinning;
   enum BumpMappingModes bumpMappingMode;
   enum FilteringModes filteringMode;
   GLint minFilter, magFilter;

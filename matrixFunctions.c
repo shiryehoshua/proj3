@@ -526,8 +526,6 @@ void updateNormals(GLfloat n[4*4], GLfloat m[3*3])
 
   // n = mat2^T
   SPOT_M3_TRANSPOSE(n, mat2);
-
-//  SPOT_M3_NORM(n, mat1);
 }
 
 /* Normalize homogenous coordinates */
