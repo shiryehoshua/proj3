@@ -1,46 +1,31 @@
-# Makefile for Project 3
-# <andrus@uchicago.edu>
-CC = gcc
-CFLAGS=-Wall\
-			 -O2\
-			 -g
-LFLAGS=
 
-# Maclab stuff
-GLFW_DIR_MACLAB=/opt/gfx
-IS_MACLAB=$(wildcard $(GLFW_DIR_MACLAB))
+##
+## demo Makefile for Project 3
+##
 
-# Output binary name, source files, headers, and libraries
-BIN=proj3
-SRC=$(shell ls *.c)
-HEADERS=$(shell ls *.h)
-OBJS=$(SRC:.c=.o)
-LIBS=libglfw
+# Compiler settings
+CC     ?= cc
 
-# Add the appropriate flags for each of our libraries using pkg-config
-ifeq ($(strip $(IS_MACLAB)), $(GLFW_DIR_MACLAB))
-CFLAGS+=-I$(GLFW_DIR_MACLAB)/include `pkg-config --cflags $(LIBS)`
-LFLAGS+=-L$(GLFW_DIR_MACLAB)/lib `pkg-config --libs $(LIBS)` ../lib/libAntTweakBar.dylib\
-				../lib/libpng15.a
-else
-LIBS+=libpng
-CFLAGS+=`pkg-config --cflags $(LIBS)` 
-LFLAGS+=`pkg-config --libs $(LIBS)` /usr/local/lib/libAntTweakBar.dylib
-endif
+GLFW_DIR_MACLAB = /opt/gfx
+IS_MACLAB = $(wildcard $(GLFW_DIR_MACLAB))
 
-# Compilation rules
-# %.o:$(SRC) $(HEADERS)
-%.o:%.c %.h
-	$(CC) $(CFLAGS) -c -o $@ $<
+ifeq ($(strip $(IS_MACLAB)), $(GLFW_DIR_MACLAB)) 
+CFLAGS ?= -Wall -O2 -g -I/opt/gfx/include -I../include
+LFLAGS = -L/opt/gfx/lib -lglfw -framework Cocoa -framework OpenGL -lz
+else 
+CFLAGS ?= -Wall -O2 -g -I../include
+LFLAGS = -L/usr/local/lib -lglfw -framework Cocoa -framework OpenGL -lz
+endif 
 
-# Linking rules
-$(BIN):$(OBJS)
-	$(CC) $^ $(LFLAGS) -o $@
+OBJS = proj3.o spotGeomShapes.o spotGeomMethods.o spotImage.o spotUtils.o callbacks.o matrixFunctions.o
 
-# Phonies
-.PHONY: all clean run
-all:$(BIN)
+all: proj3 $(OBJS)
+
+%.o: %.c spot.h spotMacros.h callbacks.h matrixFunctions.h types.h
+	$(CC) $(CFLAGS) -c -o $@ $< 
+
+proj3: $(OBJS) spot.h spotMacros.h callbacks.h matrixFunctions.h types.h
+	$(CC) $(OBJS) $(LFLAGS) ../lib/libAntTweakBar.dylib ../lib/libpng15.a -o proj3
+
 clean:
-	rm -f $(BIN).dSYM $(BIN) $(OBJS)
-run:$(BIN)
-	./$(BIN)
+	rm -rf proj3 proj3.dSYM $(OBJS) 

@@ -249,6 +249,10 @@ void callbackMouseButton(int button, int action)
           gctx->mouseFun.m = gctx->lightDir;
           gctx->mouseFun.f = m_rotate_3rd_V3;
           gctx->mouseFun.multiplier = 10;
+        } else if (gctx->modelMode) {
+          printf(" ... (mode L) rotates light direction around N\n");
+          gctx->mouseFun.m = NULL;
+          gctx->mouseFun.f = m_rotate_model_N; 
         }
       } else {
         if (gctx->modelMode) {
@@ -330,7 +334,6 @@ void callbackMousePos(int xx, int yy)
 
     // Change in time
     double dt = toc - gctx->ticMouse;
-		printf(">>> %f\n", dt);
 
   if (gctx->buttonDown) {
     GLfloat xf = (float) xx / gctx->winSizeX;

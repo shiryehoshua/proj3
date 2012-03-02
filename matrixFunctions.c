@@ -134,6 +134,11 @@ void rotate_model(spotGeom *obj, GLfloat t, size_t i)
   SPOT_V4_COPY(obj->quaternion, newquat);
 }
 
+void rotate_model_N(GLfloat t)
+{
+  rotate_model(gctx->geom[gctx->gi], -t, 2);
+}
+
 void rotate_model_V(GLfloat t)
 {
   rotate_model(gctx->geom[gctx->gi], -t, 1);
@@ -193,9 +198,13 @@ void m_rotate_view_UV(GLfloat *t, GLfloat *s, size_t i)
   rotate_view_V(-s[i]);
 }
 
+void m_rotate_model_N(GLfloat *t, GLfloat *s, size_t i)
+{
+  rotate_model_N(s[i]);
+}
+
 void m_rotate_model_UV(GLfloat *t, GLfloat *s, size_t i)
 {
-
   rotate_model_UV(-s[i], s[i+1]);
 }
 
