@@ -222,7 +222,7 @@ void translate(GLfloat xyzw[4*4], GLfloat v[3])
 
 void translate_model_UV(GLfloat *t, GLfloat *s, size_t i)
 {
-  int j; for (j=0; j<gctx->geomNum; j++) { t=gctx->geom[j]->modelMatrix;
+  t=gctx->geom[gctx->gi]->modelMatrix;
   GLfloat u[3], v[3], m[3], l;
   copy_1st_V3(u, gctx->camera.uvn);
   SPOT_V3_NORM(m, u, l);
@@ -236,7 +236,6 @@ void translate_model_UV(GLfloat *t, GLfloat *s, size_t i)
   m[1] *= s[i+1];
   m[2] *= s[i+1];
   translate(t, m);
-  }
 }
 
 void translate_model_N(GLfloat *t, GLfloat *s, size_t i)

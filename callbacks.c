@@ -257,7 +257,7 @@ void callbackMouseButton(int button, int action)
       } else {
         if (gctx->modelMode) {
           printf(" ... (move M) translates object along N\n");
-          gctx->mouseFun.m = gctx->geom[0]->modelMatrix;
+          gctx->mouseFun.m = gctx->geom[gctx->gi]->modelMatrix;
           gctx->mouseFun.f = translate_model_N;
           gctx->mouseFun.multiplier = 4;
           int j; for (j=0; j<gctx->geomNum; j++) {
@@ -306,14 +306,14 @@ void callbackMouseButton(int button, int action)
           gctx->mouseFun.f = m_rotate_model_UV;
         }
       } else {
-        printf(" ... (mode V) translates eye and look-at along U and V\n");
-        printf(" ... (mode M) translates object along U and V\n");
         if (gctx->viewMode) {
+          printf(" ... (mode V) translates eye and look-at along U and V\n");
           gctx->mouseFun.m = gctx->camera.uvn;
           gctx->mouseFun.f = translate_view_UV;
           gctx->mouseFun.multiplier = -4;
         } else if (gctx->modelMode) {
-          gctx->mouseFun.m = gctx->geom[0]->modelMatrix;
+          printf(" ... (mode M) translates object along U and V\n");
+          gctx->mouseFun.m = gctx->geom[gctx->gi]->modelMatrix;
           gctx->mouseFun.f = translate_model_UV;
           gctx->mouseFun.multiplier = 4;
         }
@@ -345,7 +345,7 @@ void callbackMousePos(int xx, int yy)
 
     (gctx->mouseFun.f)(gctx->mouseFun.m, s, gctx->mouseFun.i);
 
-    if (gctx->modelMode) {
+    if (gctx->modelMode && !gctx->shiftDown) {
     // Change in angle
     GLfloat dau, dav;
     dau = (float)(xx - gctx->lastX)/(gctx->winSizeX)*2*M_PI;
