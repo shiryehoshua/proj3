@@ -225,6 +225,7 @@ void setUnilocs() {
      frequently set */
 #define SET_UNILOC(V) gctx->uniloc.V = glGetUniformLocation(gctx->program, #V)
       SET_UNILOC(lightDir);
+      SET_UNILOC(spotPoint);
       SET_UNILOC(lightColor);
       SET_UNILOC(modelMatrix);
       SET_UNILOC(normalMatrix);
@@ -387,6 +388,20 @@ int contextGLInit(context_t *ctx) {
   gctx->camera.at[1] = 0;
   gctx->camera.at[2] = 0;
 
+  // NOTE: spotlight initializations
+  SPOT_M4_IDENTITY(gctx->spotlight.uvn);
+  SPOT_M4_IDENTITY(gctx->spotlight.inverse_uvn);
+  SPOT_M4_IDENTITY(gctx->spotlight.proj);
+  // fov == umbra angle
+  gctx->spotlight.fov = 1.57079633/10; // 90 degrees
+  gctx->spotlight.up[0] = 0;
+  gctx->spotlight.up[1] = 1;
+  gctx->spotlight.up[2] = 0;
+  SPOT_V3_SET(gctx->spotlight.from, 0.0f, 0.0f, -5.0f);
+  gctx->spotlight.at[0] = 0;
+  gctx->spotlight.at[1] = 0;
+  gctx->spotlight.at[2] = 0;
+
   // NOTE: Mouse function intializations
   gctx->mouseFun.m = NULL;
   gctx->mouseFun.f = identity;
@@ -526,6 +541,7 @@ int contextDraw(context_t *ctx) {
   glUniformMatrix4fv(ctx->uniloc.inverseViewMatrix, 1, GL_FALSE, gctx->camera.inverse_uvn);
   glUniformMatrix4fv(ctx->uniloc.projMatrix, 1, GL_FALSE, gctx->camera.proj);
   glUniform3fv(ctx->uniloc.lightDir, 1, ctx->lightDir);
+  glUniform3fv(ctx->uniloc.spotPoint, 1, ctx->spotlight.from);
   glUniform3fv(ctx->uniloc.lightColor, 1, ctx->lightColor);
   glUniform1i(ctx->uniloc.gouraudMode, ctx->gouraudMode);
   glUniform1i(ctx->uniloc.seamFix, ctx->seamFix);
@@ -681,6 +697,9 @@ int updateTweakBarVars(int scene) {
   if (!EE) EE |= !TwAddVarRW(gctx->tbar, "shexp",
                              TW_TYPE_FLOAT, &(gctx->geom[0]->shexp),
                              " label='shexp' min=0.0 max=100.0 step=0.05");
+  if (!EE) EE |= !TwAddVarRW(gctx->tbar, "object",
+                             TW_TYPE_BOOL8, &(gctx->gi),
+                             " label='object' true=Cube false=Softcube"); 
   if (!EE) EE |= !TwAddVarRW(gctx->tbar, "bgColor",
                              TW_TYPE_COLOR3F, &(gctx->bgColor),
                              " label='bkgr color' ");

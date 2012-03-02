@@ -94,6 +94,9 @@ void rotate_view(GLfloat v, int i)
   // rotate the light around the proper axis
   rotate_V3(gctx->lightDir, w, &v, 0);
 
+  // rotate spotlight around the proper axis
+  rotate_V3(gctx->spotlight.from, w, &v, 0);
+
   if (!gctx->camera.fixed)
     rotate_V3(gctx->camera.up, w, &v, 0);
 }
@@ -132,6 +135,11 @@ void rotate_model(spotGeom *obj, GLfloat t, size_t i)
   // apply rotation
   SPOT_Q_MUL(newquat, quat, obj->quaternion);
   SPOT_V4_COPY(obj->quaternion, newquat);
+}
+
+void rotate_model_N(GLfloat t)
+{
+  rotate_model(gctx->geom[gctx->gi], -t, 2);
 }
 
 void rotate_model_V(GLfloat t)
@@ -193,9 +201,13 @@ void m_rotate_view_UV(GLfloat *t, GLfloat *s, size_t i)
   rotate_view_V(-s[i]);
 }
 
+void m_rotate_model_N(GLfloat *t, GLfloat *s, size_t i)
+{
+  rotate_model_N(s[i]);
+}
+
 void m_rotate_model_UV(GLfloat *t, GLfloat *s, size_t i)
 {
-
   rotate_model_UV(-s[i], s[i+1]);
 }
 
@@ -213,7 +225,7 @@ void translate(GLfloat xyzw[4*4], GLfloat v[3])
 
 void translate_model_UV(GLfloat *t, GLfloat *s, size_t i)
 {
-  int j; for (j=0; j<gctx->geomNum; j++) { t=gctx->geom[j]->modelMatrix;
+  t=gctx->geom[gctx->gi]->modelMatrix;
   GLfloat u[3], v[3], m[3], l;
   copy_1st_V3(u, gctx->camera.uvn);
   SPOT_V3_NORM(m, u, l);
@@ -227,12 +239,11 @@ void translate_model_UV(GLfloat *t, GLfloat *s, size_t i)
   m[1] *= s[i+1];
   m[2] *= s[i+1];
   translate(t, m);
-  }
 }
 
 void translate_model_N(GLfloat *t, GLfloat *s, size_t i)
 {
-  int j; for (j=0; j<gctx->geomNum; j++) { t=gctx->geom[j]->modelMatrix;
+  t=gctx->geom[gctx->gi]->modelMatrix;
   GLfloat n[3], m[3], l;
   SPOT_V3_SUB(n, gctx->camera.from, gctx->camera.at);
   SPOT_V3_NORM(m, n, l);
@@ -240,7 +251,6 @@ void translate_model_N(GLfloat *t, GLfloat *s, size_t i)
   m[1] *= s[i];
   m[2] *= s[i];
   translate(t, m);
-  }
 }
 
 void translate_view_UV(GLfloat *t, GLfloat *s, size_t i)

@@ -99,6 +99,7 @@ typedef struct {
   GLint inverseViewMatrix;   /* possible name of view matrix in vertex shader */
   GLint projMatrix;   /* possible name of projection matrix in vertex shader */
   /* ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ */
+  GLint spotPoint;    /* point in view space coords that spot comes from */
   GLint lightDir;     /* same name as field in context_t */
   GLint lightColor;   /* same name as field in context_t */
   GLint gouraudMode;  /* same name as field in context_t */
@@ -141,8 +142,9 @@ typedef struct {
     tbarSizeY,            /* initial height of tweak bar */
     tbarMargin;           /* margin between tweak bar and window */
 
-  camera_t camera;        /* a camera */
-  uniloc_t uniloc;       /* store of uniform locations */
+  camera_t camera,        /* a camera */
+    spotlight;            /* a spotlight */
+  uniloc_t uniloc;        /* store of uniform locations */
   model_t model;
 
   int lastX, lastY;       /* coordinates of last known mouse position */

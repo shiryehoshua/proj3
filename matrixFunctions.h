@@ -46,6 +46,7 @@ void m_rotate_view_V(GLfloat *t, GLfloat *s, size_t i);
 void m_rotate_view_N(GLfloat *t, GLfloat *s, size_t i);
 void m_rotate_view_UV(GLfloat *t, GLfloat *s, size_t i);
 void m_rotate_model_UV(GLfloat *t, GLfloat *s, size_t i);
+void m_rotate_model_N(GLfloat *t, GLfloat *s, size_t i);
 
 void translate(GLfloat xyzw[4*4], GLfloat v[3]);
 
