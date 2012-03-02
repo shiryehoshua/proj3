@@ -367,7 +367,6 @@ void callbackMousePos(int xx, int yy)
     gctx->lastX = xx;
     gctx->lastY = yy;
   } else {
-    fprintf(stderr, "BUTTON IS NOT BEING PRESSED!! %f\n", spotTime());
     TwEventMousePosGLFW(xx, yy);
   }
 }

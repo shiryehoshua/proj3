@@ -492,10 +492,9 @@ int contextDraw(context_t *ctx) {
   double dt = toc - ctx->ticDraw;
   ctx->ticDraw = toc;
 
-  gctx->angleU = thetaPerSecU * dt;
-  gctx->angleV = thetaPerSecV * dt;
-  fprintf(stderr, "ANGLEU: %f, ANGLEV: %f\n", gctx->angleU, gctx->angleV);
-  rotate_model_UV(gctx->angleU, gctx->angleV);
+  gctx->angleU = (thetaPerSecU * dt) * 0.1;
+  gctx->angleV = (thetaPerSecV * dt) * 0.1;
+  rotate_model_UV(gctx->angleU, -gctx->angleV);
 
   /* re-assert which program is being used (AntTweakBar uses its own) */
   glUseProgram(ctx->program); 
@@ -908,7 +907,7 @@ int main(int argc, const char* argv[]) {
     /* Display rendering results */
     glfwSwapBuffers();
     /* NOTE: don't call glfwWaitEvents() if you want to redraw continuously */
-    glfwWaitEvents();
+//    glfwWaitEvents();
     /* quit if window was closed */
     if (!glfwGetWindowParam(GLFW_OPENED)) {
       gctx->running = 0;
