@@ -117,6 +117,7 @@ typedef struct {
                             shexp: shininess exponent.
                             Ka, Kd, and Ks are normally in range [0.0,1.0],
                             shexp are anything > 0.0, about 5 to 5000 */
+    quaternion[4],       /* rotation of model coords */
     modelMatrix[16],     /* transformation of model coords */
     normalMatrix[9];     /* transformation of normals */
   GLint program;         /* if non-zero, specific shader program to use */

@@ -31,7 +31,7 @@ void rotate_view_U(GLfloat t);
 void rotate_view_V(GLfloat t);
 void rotate_view_N(GLfloat t);
 
-void rotate_model(GLfloat t, size_t i);
+void rotate_model(spotGeom *obj, GLfloat t, size_t i);
 void rotate_model_UV(GLfloat x, GLfloat y);
 void rotate_model_U(GLfloat t);
 void rotate_model_V(GLfloat t);
@@ -89,6 +89,8 @@ void updateProj(GLfloat m[4*4], GLfloat w, GLfloat h, GLfloat n, GLfloat f, int 
 void updateNormals(GLfloat n[4*4], GLfloat m[3*3]);
 
 void norm_M4(GLfloat m[4*4]);
+
+void set_model_transform(GLfloat m[4*4], spotGeom *obj);
 
 #ifdef __cplusplus
 }

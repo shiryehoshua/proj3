@@ -124,7 +124,6 @@ typedef struct {
     *fragFname;           /* file name of fragment shader */
   spotGeom **geom;        /* array of spotGeom's to render */
   GLint gi;               /* index of spotGeom object currently in use */
-  GLfloat axes[9];        /* the axes of rotation for the model */
   unsigned int geomNum;   /* length of geom */
   spotImage **image;      /* array of texture images to use */
   unsigned int imageNum;  /* length of image */

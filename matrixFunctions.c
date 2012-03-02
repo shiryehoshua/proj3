@@ -118,128 +118,36 @@ void rotate_view_N(GLfloat x)
   SPOT_V3_NORM(gctx->camera.up, temp, l);
 };
 
-void rotate_model(GLfloat t, size_t i) 
+void rotate_model(spotGeom *obj, GLfloat t, size_t i) 
 {
-  GLfloat angle, axis[3], quat[4], tempv[3], mat[16], tempm[16];
+  GLfloat angle, axis[3], quat[4], newquat[4];
+
+  // calculate angle of rotation
   angle = M_PI * 2.0f * t;
 
-//  SPOT_V3_SET(tempv, (i == 0), - (i == 1), 0);
-  SPOT_M4V3_MUL(axis, gctx->geom[gctx->gi]->modelMatrix, tempv);
+  // extract axis of rotation
+  copy_V3(axis, gctx->camera.uvn, i);
   spotAAToQuat(quat, angle, axis);
 
-  spotQuatToM4(mat, quat);
-
-  SPOT_M4_MUL(tempm, gctx->geom[gctx->gi]->modelMatrix, mat);
-  SPOT_M4_SET_2(gctx->geom[gctx->gi]->modelMatrix, tempm);
-}
-
-void rotate_model_U(GLfloat t)
-{
-  rotate_model(t, 0);
+  // apply rotation
+  SPOT_Q_MUL(newquat, quat, obj->quaternion);
+  SPOT_V4_COPY(obj->quaternion, newquat);
 }
 
 void rotate_model_V(GLfloat t)
 {
-  rotate_model(t, 1);
+  rotate_model(gctx->geom[gctx->gi], -t, 1);
 }
 
-void rotate_model_N(GLfloat t)
+void rotate_model_U(GLfloat t)
 {
-  rotate_model(t, 2);
+  rotate_model(gctx->geom[gctx->gi], -t, 0);
 }
 
 void rotate_model_UV(GLfloat x, GLfloat y)
 {
-
-  GLfloat l, angleX, angleY, axes[9], axisX[3], axisY[3], quatX[4], quatY[4], quatXY[4], mat[16], temp[16];
-
-  angleX = M_PI * 2.0f * -x;
-  angleY = M_PI * 2.0f * y;
-
-  SPOT_M3_SET_2(axes, gctx->axes);
-  SPOT_V3_SET(axisY, axes[0], axes[3], axes[6]);
-  SPOT_V3_SET(axisX, axes[1], axes[4], axes[7]);
-
-  spotAAToQuat(quatX, angleX, axisX);
-  spotAAToQuat(quatY, angleY, axisY);
-
-  SPOT_Q_MUL(quatXY, quatX, quatY);
-  spotQuatToM4(mat, quatXY);
-
-  SPOT_M4_MUL(temp, gctx->geom[gctx->gi]->modelMatrix, mat);
-  SPOT_M4_SET_2(gctx->geom[gctx->gi]->modelMatrix, temp);
-
-  SPOT_M3M4_EXTRACT(temp, mat);
-  SPOT_M3_MUL(gctx->axes, temp, axes);
-
-/*
-  GLfloat cotheta, sitheta, // scalars
-    l;
-  GLfloat u[3];             // vectors
-  GLfloat q[4], qstar[4];   // quaternions
-  GLfloat Q[16], Qstar[16], // matrices 
-    PQstar[16], QPQstar[16], 
-    modelMat[16]; 
-
-  // extract modelMatrix
-  SPOT_M4_SET_2(modelMat, gctx->geom[gctx->gi]->modelMatrix);
-
-  // trig
-  cotheta = cosf(t*M_PI); sitheta = sinf(t*M_PI); 
-
-  // axis of rotation
-  copy_V3(u, gctx->camera.uvn, i);
-//  SPOT_M4V3_MUL(u, modelMat, u);
-  SPOT_V3_NORM(u, u, l);
-
-  // create quaternion q
-  q[0] = cotheta;
-  q[1] = u[0] * sitheta; q[2] = u[1] * sitheta; q[3] = u[2] * sitheta;
-//  SPOT_V3_SCALE(&q[1], sitheta, u);
-  SPOT_Q_NORM(q, q, l);
-
-  // create quaternion q*
-  SPOT_V3_SCALE(qstar, -1, q);
-  qstar[0] = q[0];
-
-  // obtain rotation matrices
-  SPOT_Q_TO_M4(Q, q);
-  SPOT_Q_TO_M4(Qstar, qstar);
-
-  // perform rotation
-  SPOT_M4_MUL(PQstar, modelMat, Qstar);
-  SPOT_M4_MUL(QPQstar, Q, PQstar);
-  SPOT_M4_SET_2(gctx->geom[gctx->gi]->modelMatrix, QPQstar);
-
-  // update normals
-  updateNormals(gctx->geom[gctx->gi]->normalMatrix, QPQstar);
-*/
-/*
-  GLfloat rotationq[16], rotationqstar[16], qp[16], q[4], qstar[4], temp[4], si, co, l;
-
-  // set axis quaternions (for rotation around axis i, slerp between the two remaining axes != i)
-  si = sinf(t*M_PI); co = cosf(t*M_PI);
-
-  // get the axis of rotation
-  copy_V3(temp, gctx->camera.uvn, i);
-
-  // build the quaternion associated with this axis
-  q[0] = co; q[1] = si * temp[0]; q[2] = si * temp[1]; q[3] = si * temp[2];
-
-  SPOT_Q_NORM(q, q, l);
-  SPOT_Q_SET(qstar, q[3], -q[0], -q[1], -q[2]);
-
-  // build rotation matrices for quaternion
-  SPOT_Q_TO_M4(rotationq, q);
-  SPOT_Q_TO_M4(rotationqstar, qstar);
-  
-  // rotate
-  SPOT_M4_MUL(qp, rotationq, gctx->geom[gctx->gi]->modelMatrix);
-  SPOT_M4_MUL(gctx->geom[gctx->gi]->modelMatrix, qp, rotationqstar);
-
-  // update normals
-  updateNormals(gctx->geom[gctx->gi]->normalMatrix, gctx->geom[gctx->gi]->modelMatrix);
-*/
+  rotate_model_U(y);
+  rotate_model_V(x);
 }
 
 /* Wrapped functions to be passed to mouseFun.f */
@@ -617,4 +525,15 @@ void norm_M4(GLfloat m[4*4])
     m[ 8]/=m[15]; m[ 9]/=m[15]; m[10]/=m[15]; m[11]/=m[15];
     m[12]/=m[15]; m[13]/=m[15]; m[14]/=m[15]; m[15]/=m[15];
   }
+}
+
+void set_model_transform(GLfloat m[4*4], spotGeom *obj)
+{
+  GLfloat temp[16];
+
+  // extract matrix quaternion
+  spotQuatToM4(temp, obj->quaternion);
+
+  // apply rotation quaternion, then apply model transform
+  SPOT_M4_MUL(m, obj->modelMatrix, temp);
 }

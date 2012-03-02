@@ -152,7 +152,6 @@ context_t *contextNew(unsigned int geomNum, unsigned int imageNum) {
   SPOT_V3_SET(ctx->bgColor, 0.2f, 0.25f, 0.3f);
   SPOT_V3_SET(ctx->lightDir, 1.0f, 0.0f, 0.0f);
   SPOT_V3_SET(ctx->lightColor, 1.0f, 1.0f, 1.0f);
-  SPOT_M3_IDENTITY(ctx->axes);
   ctx->running = 1;
   ctx->program = 0;
   ctx->winSizeX = 900;
@@ -183,6 +182,10 @@ context_t *contextNew(unsigned int geomNum, unsigned int imageNum) {
     // translate the objects
 //    translateGeomU(ctx->geom[0], 1.0f);
     translateGeomU(ctx->geom[1], -2.0f);
+
+    // set orientation
+    SPOT_V4_SET(ctx->geom[0]->quaternion, 1.0f, 0.0f, 0.0f, 0.0f);
+    SPOT_V4_SET(ctx->geom[1]->quaternion, 1.0f, 0.0f, 0.0f, 0.0f);
 
     // load images
     spotImageLoadPNG(ctx->image[0], "textimg/uchic-rgb.png");     // texture
@@ -423,6 +426,7 @@ context_t *contextNix(context_t *ctx) {
 int contextDraw(context_t *ctx) {
   const char me[]="contextDraw";
   unsigned int gi;
+  GLfloat modelMat[16];
 
   GLfloat thetaPerSecU, thetaPerSecV;
   if (ctx->buttonDown) {
@@ -509,8 +513,9 @@ int contextDraw(context_t *ctx) {
 //  rotate_model_UV(gctx->angleU, gctx->angleV);
   
   for (gi=0; gi<ctx->geomNum; gi++) {
+    set_model_transform(modelMat, ctx->geom[gi]);
     glUniformMatrix4fv(ctx->uniloc.modelMatrix, 
-                       1, GL_FALSE, ctx->geom[gi]->modelMatrix);
+                       1, GL_FALSE, modelMat);
     glUniformMatrix3fv(ctx->uniloc.normalMatrix,
                        1, GL_FALSE, ctx->geom[gi]->normalMatrix);
     glUniform3fv(ctx->uniloc.objColor, 1, ctx->geom[gi]->objColor);
@@ -521,9 +526,10 @@ int contextDraw(context_t *ctx) {
 
   // NOTE: update our geom-specific unilocs
   for (gi=sceneGeomOffset; gi<ctx->geomNum; gi++) {
+    set_model_transform(modelMat, ctx->geom[gi]);
     // NOTE: we normalize the model matrix; while we may not need to, it is cheap to do so
-    norm_M4(gctx->geom[gi]->modelMatrix);
-    glUniformMatrix4fv(ctx->uniloc.modelMatrix, 1, GL_FALSE, ctx->geom[gi]->modelMatrix);
+    norm_M4(modelMat);
+    glUniformMatrix4fv(ctx->uniloc.modelMatrix, 1, GL_FALSE, modelMat);
     // NOTE: we update normals in our `matrixFunctions.c' functions on a case-by-case basis
     // updateNormals(gctx->geom[gi]->normalMatrix, gctx->geom[gi]->normalMatrix);
     glUniformMatrix3fv(ctx->uniloc.normalMatrix, 1, GL_FALSE, ctx->geom[gi]->normalMatrix);
